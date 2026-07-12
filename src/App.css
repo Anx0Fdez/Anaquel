@@ -13,3 +13,9 @@
   flex-direction: column;
   height: 100%;
 }
+
+.app-loading {
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg);
+}

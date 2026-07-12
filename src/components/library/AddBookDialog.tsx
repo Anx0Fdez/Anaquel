@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import type { Book, EstadoLectura, FormatoLibro } from "../../types/book";
 import { ESTADO_LABEL, FORMATO_LABEL } from "../../types/book";
-import "./AddBookDialog.css";
+import "../ui/Dialog.css";
 
 interface AddBookDialogProps {
   onAdd: (book: Book) => void;

@@ -1,4 +1,5 @@
 import {
+  ArrowLeftRight,
   BookMarked,
   BookOpen,
   CheckCircle2,
@@ -17,10 +18,12 @@ interface AnaquelEntry {
 }
 
 interface SidebarProps {
+  vaultName: string;
   activeFilter: NavFilter;
   onFilterChange: (filter: NavFilter) => void;
   anaqueles: AnaquelEntry[];
   stats: { booksThisYear: number; pagesThisYear: number };
+  onSwitchVault: () => void;
 }
 
 const NAV_ITEMS: { filter: NavFilter; label: string; icon: typeof Library }[] = [
@@ -32,7 +35,14 @@ const NAV_ITEMS: { filter: NavFilter; label: string; icon: typeof Library }[] = 
   { filter: { kind: "favoritos" }, label: "Favoritos", icon: Heart },
 ];
 
-export function Sidebar({ activeFilter, onFilterChange, anaqueles, stats }: SidebarProps) {
+export function Sidebar({
+  vaultName,
+  activeFilter,
+  onFilterChange,
+  anaqueles,
+  stats,
+  onSwitchVault,
+}: SidebarProps) {
   const activeKey = filterKey(activeFilter);
 
   return (
@@ -41,6 +51,15 @@ export function Sidebar({ activeFilter, onFilterChange, anaqueles, stats }: Side
         <Library size={20} strokeWidth={2.25} />
         <span>Ananquel</span>
       </div>
+
+      <button
+        className="sidebar-vault-switch"
+        onClick={onSwitchVault}
+        title="Cambiar biblioteca"
+      >
+        <span className="sidebar-vault-switch-name">{vaultName}</span>
+        <ArrowLeftRight size={12} strokeWidth={2} />
+      </button>
 
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(({ filter, label, icon: Icon }) => {

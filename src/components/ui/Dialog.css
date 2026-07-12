@@ -100,6 +100,49 @@
   border-color: var(--accent);
 }
 
+.dialog-browse-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-strong);
+  background: var(--bg-inset);
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dialog-browse-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.dialog-hint {
+  margin: -6px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-faint);
+  overflow-wrap: anywhere;
+}
+
+.dialog-hint code {
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+}
+
+.dialog-error {
+  margin: -4px 0 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--status-quiero_leer);
+}
+
 .dialog-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -140,4 +183,9 @@
 
 .dialog-btn-primary:hover {
   filter: brightness(1.08);
+}
+
+.dialog-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
