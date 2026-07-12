@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .vite
 
+# Claude Code session state (machine/session-specific, not project config)
+.claude/scheduled_tasks.lock
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
