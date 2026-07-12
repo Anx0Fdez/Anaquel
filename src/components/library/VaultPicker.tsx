@@ -61,7 +61,7 @@ export function VaultPicker({ onVaultReady }: { onVaultReady: (vault: VaultInfo)
     <div className="vault-picker">
       <div className="vault-picker-card">
         <div className="vault-picker-logo">
-          <Library size={26} strokeWidth={2.25} />
+          <img src="/logo.png" alt="" className="vault-picker-logo-mark" />
           <span>Ananquel</span>
         </div>
         <p className="vault-picker-tagline">

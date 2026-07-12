@@ -48,7 +48,7 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <Library size={20} strokeWidth={2.25} />
+        <img src="/logo.png" alt="" className="sidebar-logo-mark" />
         <span>Ananquel</span>
       </div>
 
