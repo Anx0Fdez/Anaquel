@@ -1,0 +1,129 @@
+:root {
+  --font-serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --status-leyendo: #4c86e0;
+  --status-leyendo-bg: rgba(76, 134, 224, 0.16);
+  --status-leido: #4fa876;
+  --status-leido-bg: rgba(79, 168, 118, 0.16);
+  --status-quiero_leer: #d99a3f;
+  --status-quiero_leer-bg: rgba(217, 154, 63, 0.16);
+  --status-audiolibro: #9c7fe0;
+  --status-audiolibro-bg: rgba(156, 127, 224, 0.16);
+  --status-abandonado: #8a8378;
+  --status-abandonado-bg: rgba(138, 131, 120, 0.16);
+
+  --status-leyendo-spine: #3f6fc0;
+  --status-leido-spine: #3f8c63;
+  --status-quiero_leer-spine: #b97f2e;
+  --status-audiolibro-spine: #8267c9;
+  --status-abandonado-spine: #6f6a60;
+
+  color-scheme: dark;
+  --bg: #1a1613;
+  --bg-elevated: #17130f;
+  --bg-inset: #100d0b;
+  --bg-hover: #241f1a;
+  --bg-active: #2a3f5f;
+  --border: rgba(239, 231, 219, 0.09);
+  --border-strong: rgba(239, 231, 219, 0.16);
+  --text: #efe7db;
+  --text-muted: #9c9285;
+  --text-faint: #6f6a60;
+  --accent: #4c86e0;
+  --accent-text: #ffffff;
+  --scrollbar: rgba(239, 231, 219, 0.14);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #faf7f2;
+  --bg-elevated: #ffffff;
+  --bg-inset: #f1ece3;
+  --bg-hover: #f0eae0;
+  --bg-active: #dce8fb;
+  --border: rgba(30, 25, 18, 0.09);
+  --border-strong: rgba(30, 25, 18, 0.16);
+  --text: #211c15;
+  --text-muted: #756d5f;
+  --text-faint: #a49b8a;
+  --accent: #3768c2;
+  --accent-text: #ffffff;
+  --scrollbar: rgba(30, 25, 18, 0.16);
+
+  --status-leyendo-bg: rgba(55, 104, 194, 0.12);
+  --status-leido-bg: rgba(47, 138, 92, 0.12);
+  --status-quiero_leer-bg: rgba(180, 118, 32, 0.14);
+  --status-audiolibro-bg: rgba(124, 92, 202, 0.14);
+  --status-abandonado-bg: rgba(110, 103, 90, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+button,
+input {
+  font-family: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.spine--leyendo {
+  background: var(--status-leyendo-spine);
+  border-left-color: var(--status-leyendo);
+}
+
+.spine--leido {
+  background: var(--status-leido-spine);
+  border-left-color: var(--status-leido);
+}
+
+.spine--quiero_leer {
+  background: var(--status-quiero_leer-spine);
+  border-left-color: var(--status-quiero_leer);
+}
+
+.spine--audiolibro {
+  background: var(--status-audiolibro-spine);
+  border-left-color: var(--status-audiolibro);
+}
+
+.spine--abandonado {
+  background: var(--status-abandonado-spine);
+  border-left-color: var(--status-abandonado);
+}

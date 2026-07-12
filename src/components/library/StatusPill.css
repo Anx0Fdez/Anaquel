@@ -1,0 +1,36 @@
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.status-pill--leyendo {
+  color: var(--status-leyendo);
+  background: var(--status-leyendo-bg);
+}
+
+.status-pill--leido {
+  color: var(--status-leido);
+  background: var(--status-leido-bg);
+}
+
+.status-pill--quiero_leer {
+  color: var(--status-quiero_leer);
+  background: var(--status-quiero_leer-bg);
+}
+
+.status-pill--audiolibro {
+  color: var(--status-audiolibro);
+  background: var(--status-audiolibro-bg);
+}
+
+.status-pill--abandonado {
+  color: var(--status-abandonado);
+  background: var(--status-abandonado-bg);
+}
