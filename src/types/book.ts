@@ -1,6 +1,6 @@
-// Espejo en TypeScript del frontmatter YAML de cada libro (ver docs/frontmatter-schema.md).
-// Los nombres de campo coinciden 1:1 con las claves YAML para que la (de)serialización
-// entre el índice SQLite / los .md y el frontend no necesite un mapeo aparte.
+// Espejo en TypeScript de la struct Book de src-tauri/src/library.rs (ver docs/library-format.md).
+// Los nombres de campo coinciden 1:1 con las claves del library.json del vault para que
+// la (de)serialización entre Rust y el frontend no necesite un mapeo aparte.
 
 export type EstadoLectura =
   | "quiero_leer"
@@ -37,8 +37,7 @@ export interface EdicionAdicional {
 }
 
 export interface Book {
-  id: string; // uuid, estable aunque se renombre el archivo .md
-  ruta: string; // ruta relativa dentro del vault, ej. "Fantasía/el-nombre-del-viento.md"
+  id: string; // uuid, estable aunque cambie el título
   titulo: string;
   titulo_original: string | null;
   autor: string;

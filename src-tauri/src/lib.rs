@@ -1,3 +1,4 @@
+mod library;
 mod vault;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -11,6 +12,8 @@ pub fn run() {
             vault::open_vault,
             vault::save_vault_config,
             vault::remove_recent_vault,
+            library::load_books,
+            library::save_books,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -5,7 +5,7 @@ import { TableView } from "./library/TableView";
 import { GridView } from "./library/GridView";
 import { ListView } from "./library/ListView";
 import { AddBookDialog } from "./library/AddBookDialog";
-import { mockLibrary } from "../data/mockLibrary";
+import { loadBooks, saveBooks } from "../lib/library";
 import { saveVaultConfig } from "../lib/vault";
 import type { Book, Theme, ViewMode } from "../types/book";
 import type { VaultInfo } from "../types/vault";
@@ -18,7 +18,9 @@ interface LibraryScreenProps {
 }
 
 export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
-  const [books, setBooks] = useState<Book[]>(mockLibrary);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [theme, setTheme] = useState<Theme>(vault.config.theme);
   const [viewMode, setViewMode] = useState<ViewMode>(vault.config.lastView);
   const [navFilter, setNavFilter] = useState<NavFilter>({ kind: "all" });
@@ -30,6 +32,24 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
   }, [theme]);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoaded(false);
+    loadBooks(vault.path)
+      .then((loadedBooks) => {
+        if (!cancelled) setBooks(loadedBooks);
+      })
+      .catch((err) => {
+        if (!cancelled) setSaveError(String(err));
+      })
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [vault.path]);
+
+  useEffect(() => {
     saveVaultConfig(vault.path, {
       theme,
       lastView: viewMode,
@@ -38,6 +58,11 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
       // si falla el guardado, la próxima interacción del usuario lo reintentará igualmente
     });
   }, [theme, viewMode, vault.path, vault.config.anaquelOrder]);
+
+  function persistBooks(updated: Book[]) {
+    setBooks(updated);
+    saveBooks(vault.path, updated).catch((err) => setSaveError(String(err)));
+  }
 
   const anaqueles = useMemo(() => {
     const counts = new Map<string, number>();
@@ -63,6 +88,10 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
     [books, navFilter, query],
   );
 
+  if (!loaded) {
+    return <div className="app-loading" />;
+  }
+
   return (
     <div className="app-shell">
       <Sidebar
@@ -85,6 +114,12 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
           onAddBook={() => setDialogOpen(true)}
         />
 
+        {saveError && (
+          <div className="app-save-error" role="alert">
+            No se pudo guardar en el anaquel: {saveError}
+          </div>
+        )}
+
         {viewMode === "table" && <TableView books={visibleBooks} />}
         {viewMode === "grid" && <GridView books={visibleBooks} />}
         {viewMode === "list" && <ListView books={visibleBooks} />}
@@ -94,7 +129,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
         <AddBookDialog
           onClose={() => setDialogOpen(false)}
           onAdd={(book) => {
-            setBooks((prev) => [book, ...prev]);
+            persistBooks([book, ...books]);
             setDialogOpen(false);
           }}
         />

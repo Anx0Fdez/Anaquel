@@ -27,7 +27,6 @@ export function AddBookDialog({ onAdd, onClose }: AddBookDialogProps) {
     const hoy = new Date().toISOString().slice(0, 10);
     const nuevo: Book = {
       id,
-      ruta: `${titulo.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}.md`,
       titulo: titulo.trim(),
       titulo_original: null,
       autor: autor.trim(),
