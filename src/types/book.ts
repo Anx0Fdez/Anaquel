@@ -36,9 +36,16 @@ export interface EdicionAdicional {
   duracion_min: number | null; // para audiolibros
 }
 
+export interface Prestamo {
+  persona: string;
+  fecha: string | null; // ISO date, cuándo se prestó
+  devolucion_prevista: string | null; // ISO date
+}
+
 export interface Book {
   id: string; // uuid, estable aunque cambie el título
   titulo: string;
+  subtitulo: string | null;
   titulo_original: string | null;
   autor: string;
   autores_adicionales: string[];
@@ -47,6 +54,9 @@ export interface Book {
   portada: string | null; // ruta relativa a .ananquel/covers/
   estado: EstadoLectura;
   formato: FormatoLibro;
+  idioma: string | null;
+  editorial: string | null;
+  fecha_publicacion: string | null; // ISO date
   genero: string[];
   etiquetas: string[];
   valoracion: number | null; // 0-5, admite .5
@@ -55,12 +65,13 @@ export interface Book {
   saga: Saga | null;
   fechas: Fechas;
   ubicacion_fisica: string | null;
-  prestado_a: string | null;
-  prestado_fecha_devolucion: string | null;
+  prestamo: Prestamo | null;
   ediciones: EdicionAdicional[];
   enlaces_relacionados: string[]; // ids de otros libros
   anaqueles: string[]; // estanterías personalizadas
-  notas: string; // cuerpo libre del .md (markdown)
+  descripcion: string | null; // sinopsis/contraportada
+  notas: string; // notas libres del lector
+  citas: string[]; // citas favoritas
 }
 
 export type ViewMode = "grid" | "list" | "table";

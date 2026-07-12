@@ -28,6 +28,7 @@ export function AddBookDialog({ onAdd, onClose }: AddBookDialogProps) {
     const nuevo: Book = {
       id,
       titulo: titulo.trim(),
+      subtitulo: null,
       titulo_original: null,
       autor: autor.trim(),
       autores_adicionales: [],
@@ -36,6 +37,9 @@ export function AddBookDialog({ onAdd, onClose }: AddBookDialogProps) {
       portada: null,
       estado,
       formato,
+      idioma: null,
+      editorial: null,
+      fecha_publicacion: null,
       genero: genero
         .split(",")
         .map((g) => g.trim())
@@ -47,15 +51,16 @@ export function AddBookDialog({ onAdd, onClose }: AddBookDialogProps) {
       saga: null,
       fechas: { añadido: hoy, inicio_lectura: null, fin_lectura: estado === "leido" ? hoy : null },
       ubicacion_fisica: null,
-      prestado_a: null,
-      prestado_fecha_devolucion: null,
+      prestamo: null,
       ediciones: [],
       enlaces_relacionados: [],
       anaqueles: genero
         .split(",")
         .map((g) => g.trim())
         .filter(Boolean),
+      descripcion: null,
       notas: "",
+      citas: [],
     };
     onAdd(nuevo);
   }

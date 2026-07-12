@@ -55,9 +55,18 @@ pub struct EdicionAdicional {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Prestamo {
+    pub persona: String,
+    pub fecha: Option<String>,
+    pub devolucion_prevista: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Book {
     pub id: String,
     pub titulo: String,
+    #[serde(default)]
+    pub subtitulo: Option<String>,
     pub titulo_original: Option<String>,
     pub autor: String,
     #[serde(default)]
@@ -67,6 +76,12 @@ pub struct Book {
     pub portada: Option<String>,
     pub estado: EstadoLectura,
     pub formato: FormatoLibro,
+    #[serde(default)]
+    pub idioma: Option<String>,
+    #[serde(default)]
+    pub editorial: Option<String>,
+    #[serde(default)]
+    pub fecha_publicacion: Option<String>,
     #[serde(default)]
     pub genero: Vec<String>,
     #[serde(default)]
@@ -79,8 +94,8 @@ pub struct Book {
     pub saga: Option<Saga>,
     pub fechas: Fechas,
     pub ubicacion_fisica: Option<String>,
-    pub prestado_a: Option<String>,
-    pub prestado_fecha_devolucion: Option<String>,
+    #[serde(default)]
+    pub prestamo: Option<Prestamo>,
     #[serde(default)]
     pub ediciones: Vec<EdicionAdicional>,
     #[serde(default)]
@@ -88,7 +103,11 @@ pub struct Book {
     #[serde(default)]
     pub anaqueles: Vec<String>,
     #[serde(default)]
+    pub descripcion: Option<String>,
+    #[serde(default)]
     pub notas: String,
+    #[serde(default)]
+    pub citas: Vec<String>,
 }
 
 fn library_path(vault_path: &str) -> std::path::PathBuf {

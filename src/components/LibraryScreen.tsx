@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Sidebar } from "./layout/Sidebar";
-import { Topbar } from "./layout/Topbar";
-import { TableView } from "./library/TableView";
-import { GridView } from "./library/GridView";
-import { ListView } from "./library/ListView";
-import { AddBookDialog } from "./library/AddBookDialog";
+import { LibraryListView } from "./library/LibraryListView";
+import { BookDetailScreen } from "./library/detail/BookDetailScreen";
 import { loadBooks, saveBooks } from "../lib/library";
 import { saveVaultConfig } from "../lib/vault";
 import type { Book, Theme, ViewMode } from "../types/book";
@@ -25,7 +22,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
   const [viewMode, setViewMode] = useState<ViewMode>(vault.config.lastView);
   const [navFilter, setNavFilter] = useState<NavFilter>({ kind: "all" });
   const [query, setQuery] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -64,6 +61,11 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
     saveBooks(vault.path, updated).catch((err) => setSaveError(String(err)));
   }
 
+  function handleFilterChange(filter: NavFilter) {
+    setNavFilter(filter);
+    setSelectedBookId(null);
+  }
+
   const anaqueles = useMemo(() => {
     const counts = new Map<string, number>();
     for (const b of books) {
@@ -88,6 +90,11 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
     [books, navFilter, query],
   );
 
+  const selectedBook = useMemo(
+    () => books.find((b) => b.id === selectedBookId) ?? null,
+    [books, selectedBookId],
+  );
+
   if (!loaded) {
     return <div className="app-loading" />;
   }
@@ -97,43 +104,46 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
       <Sidebar
         vaultName={vault.name}
         activeFilter={navFilter}
-        onFilterChange={setNavFilter}
+        onFilterChange={handleFilterChange}
         anaqueles={anaqueles}
         stats={stats}
         onSwitchVault={onSwitchVault}
       />
 
       <div className="app-main">
-        <Topbar
-          query={query}
-          onQueryChange={setQuery}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          theme={theme}
-          onThemeToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-          onAddBook={() => setDialogOpen(true)}
-        />
-
         {saveError && (
           <div className="app-save-error" role="alert">
             No se pudo guardar en el anaquel: {saveError}
           </div>
         )}
 
-        {viewMode === "table" && <TableView books={visibleBooks} />}
-        {viewMode === "grid" && <GridView books={visibleBooks} />}
-        {viewMode === "list" && <ListView books={visibleBooks} />}
+        {selectedBook ? (
+          <BookDetailScreen
+            book={selectedBook}
+            allBooks={books}
+            onBack={() => setSelectedBookId(null)}
+            onChange={(updated) =>
+              persistBooks(books.map((b) => (b.id === updated.id ? updated : b)))
+            }
+            onDelete={() => {
+              persistBooks(books.filter((b) => b.id !== selectedBook.id));
+              setSelectedBookId(null);
+            }}
+          />
+        ) : (
+          <LibraryListView
+            books={visibleBooks}
+            query={query}
+            onQueryChange={setQuery}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            theme={theme}
+            onThemeToggle={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+            onAddBook={(book) => persistBooks([book, ...books])}
+            onSelectBook={(book) => setSelectedBookId(book.id)}
+          />
+        )}
       </div>
-
-      {dialogOpen && (
-        <AddBookDialog
-          onClose={() => setDialogOpen(false)}
-          onAdd={(book) => {
-            persistBooks([book, ...books]);
-            setDialogOpen(false);
-          }}
-        />
-      )}
     </div>
   );
 }

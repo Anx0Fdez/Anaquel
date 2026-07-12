@@ -20,6 +20,7 @@ aunque se le cambie el título.
   {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "titulo": "El nombre del viento",
+    "subtitulo": null,
     "titulo_original": "The Name of the Wind",
     "autor": "Patrick Rothfuss",
     "autores_adicionales": [],
@@ -28,6 +29,9 @@ aunque se le cambie el título.
     "portada": "covers/550e8400.jpg",
     "estado": "leyendo",
     "formato": "fisico",
+    "idioma": "es",
+    "editorial": "Plaza & Janés",
+    "fecha_publicacion": "2007-03-27",
     "genero": ["Fantasía"],
     "etiquetas": ["saga", "favorito"],
     "valoracion": 5,
@@ -41,12 +45,13 @@ aunque se le cambie el título.
     "saga": { "nombre": "Crónica del asesino de reyes", "numero": 1, "total_libros": 3 },
     "fechas": { "añadido": "2026-06-01", "inicio_lectura": "2026-06-20", "fin_lectura": null },
     "ubicacion_fisica": "Estantería salón, balda 2",
-    "prestado_a": null,
-    "prestado_fecha_devolucion": null,
+    "prestamo": null,
     "ediciones": [],
     "enlaces_relacionados": [],
     "anaqueles": ["Fantasía"],
-    "notas": "Notas y citas libres en texto para este libro."
+    "descripcion": "Sinopsis o texto de contraportada del libro.",
+    "notas": "Notas libres del lector para este libro.",
+    "citas": ["\"El silencio de tres partes\", p. 1"]
   }
 ]
 ```
@@ -67,6 +72,12 @@ aunque se le cambie el título.
   ```json
   "ediciones": [{ "formato": "audiolibro", "editorial": "Audible", "duracion_min": 970 }]
   ```
+- **`prestamo`** es `null` si el libro no está prestado, o un objeto con
+  `persona`, `fecha` (cuándo se prestó) y `devolucion_prevista`. Un único
+  objeto anidado en vez de campos sueltos, igual que `saga` o `fechas`.
+- **El número de páginas no tiene un campo propio**: vive en
+  `progreso.paginas_totales`, que ya usan tanto el progreso de lectura como
+  las estadísticas anuales — así no hay dos sitios que puedan desincronizarse.
 - **Multi-vault / multi-dispositivo**: como todo es texto plano, dos vaults se
   sincronizan con cualquier herramienta de archivos (Git, Syncthing, Dropbox...).
   Al abrir la misma carpeta en otro ordenador, `config.json` hace que la app se
