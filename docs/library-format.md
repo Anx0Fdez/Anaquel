@@ -1,0 +1,163 @@
+# Formato de la biblioteca
+
+Cada anaquel (vault) es una carpeta cualquiera de tu sistema de archivos.
+`mybooks.json` y `myaudiobooks.json` viven en la **raíz** del vault, visibles
+igual que las notas de un vault de Obsidian — son tus datos. La subcarpeta
+oculta `.ananquel/` se reserva solo para lo que la app gestiona internamente
+(ajustes y portadas descargadas):
+
+```
+mi-biblioteca/
+├── mybooks.json       # libros físicos y ebooks
+├── myaudiobooks.json  # audiolibros (formato: "audiolibro")
+└── .ananquel/
+    ├── config.json    # tema, última vista, orden de anaqueles, tamaño de ventana, color
+    │                  # de acento, orden de biblioteca por defecto, última biblioteca activa,
+    │                  # tamaño de portada en cuadrícula
+    └── covers/        # portadas descargadas automáticamente por ISBN, o añadidas a mano
+```
+
+Si el vault viene de una versión anterior de Anaquel con `mybooks.json`/
+`myaudiobooks.json` todavía dentro de `.ananquel/`, la app los mueve a la raíz
+automáticamente la primera vez que abre ese vault (un `rename`, no un
+copiado, así que no puede duplicar ni perder nada).
+
+`mybooks.json` y `myaudiobooks.json` tienen el mismo formato (un array de
+libros) — el `formato` de cada libro decide a cuál de los dos archivos va, de
+forma transparente para el frontend, que sigue viéndolos como un único array
+unificado (la separación por archivo vive solo en `src-tauri/src/library.rs`).
+El campo `id` es lo único que no debe cambiar nunca: es lo que usa
+`enlaces_relacionados` para referenciar un libro
+aunque se le cambie el título.
+
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "titulo": "El nombre del viento",
+    "subtitulo": null,
+    "titulo_original": "The Name of the Wind",
+    "autor": "Patrick Rothfuss",
+    "autores_adicionales": [],
+    "isbn": "9788401352836",
+    "isbn13": "9788401352836",
+    "portada": "covers/550e8400.jpg",
+    "estado": "leyendo",
+    "formato": "fisico",
+    "idioma": "es",
+    "editorial": "Plaza & Janés",
+    "fecha_publicacion": "2007-03-27",
+    "etiquetas": ["saga", "favorito"],
+    "valoracion": 9,
+    "favorito": true,
+    "comprar_fisico": false,
+    "relectura": false,
+    "progreso": {
+      "pagina_actual": 210,
+      "paginas_totales": 662,
+      "porcentaje": 31,
+      "ultima_lectura": "2026-07-10"
+    },
+    "saga": { "nombre": "Crónica del asesino de reyes", "numero": 1, "total_libros": 3 },
+    "fechas": { "añadido": "2026-06-01", "inicio_lectura": "2026-06-20", "fin_lectura": null },
+    "ubicacion_fisica": "Estantería salón, balda 2",
+    "prestamo": null,
+    "ediciones": [],
+    "enlaces_relacionados": [],
+    "anaqueles": ["Fantasía"],
+    "descripcion": "Sinopsis o texto de contraportada del libro.",
+    "notas": [
+      {
+        "id": "9c1f2b3a-1111-4b2a-8b2a-000000000001",
+        "titulo": "Primeras impresiones",
+        "contenido": "El ritmo es muy lento al principio pero engancha a partir del capítulo 3.",
+        "fecha_creacion": "2026-06-21T18:32:04.000Z",
+        "fecha_modificacion": "2026-06-25T09:10:00.000Z"
+      }
+    ],
+    "citas": [
+      {
+        "id": "9c1f2b3a-2222-4b2a-8b2a-000000000002",
+        "texto": "El silencio de tres partes",
+        "pagina": 1,
+        "capitulo": null,
+        "comentario": "Primera línea del libro."
+      }
+    ]
+  }
+]
+```
+
+## Notas de diseño
+
+- **Todos los campos son opcionales excepto `id`, `titulo` y `autor`.**
+- **`estado` no depende de `formato`**: un audiolibro puede estar `quiero_leer`
+  antes de empezarlo. `audiolibro` como estado es el filtro rápido de "lo que
+  estoy escuchando ahora mismo" (equivalente a `leyendo` pero para audio).
+- **Por qué `mybooks.json`/`myaudiobooks.json` y no un `.md` por libro**: es más simple de
+  mantener consistente (una sola escritura atómica por cambio) y no necesita un
+  índice/caché aparte para que la búsqueda sea instantánea, a costa de que el
+  archivo no se pueda editar libro a libro fuera de la app tan cómodamente como
+  notas individuales de Obsidian.
+- **`ediciones`** registra formatos adicionales del mismo libro (p. ej. tienes
+  el físico Y el audiolibro):
+  ```json
+  "ediciones": [{ "formato": "audiolibro", "editorial": "Audible", "duracion_min": 970 }]
+  ```
+- **`comprar_fisico`** solo tiene sentido cuando `formato` es `audiolibro` y
+  `estado` es `leido` — la interfaz solo muestra su casilla en ese caso, pero
+  el campo existe siempre (con `false` por defecto) para no complicar el
+  esquema con condicionales.
+- **`relectura`** marca un libro (no audiolibro) para retomarlo en el futuro;
+  no depende de ningún otro campo.
+- **`prestamo`** es `null` si el libro no está prestado, o un objeto con
+  `persona`, `fecha` (cuándo se prestó) y `devolucion_prevista`. Un único
+  objeto anidado en vez de campos sueltos, igual que `saga` o `fechas`.
+- **El número de páginas no tiene un campo propio**: vive en
+  `progreso.paginas_totales`, que ya usan tanto el progreso de lectura como
+  las estadísticas anuales — así no hay dos sitios que puedan desincronizarse.
+- **`progreso.pagina_actual` y `progreso.porcentaje` ya no tienen UI propia**:
+  la interfaz dejó de mostrar un contador de "página en la que voy", así que
+  estos dos campos solo se rellenan si ya venían de datos antiguos o de una
+  fuente externa. `progreso.porcentaje`, cuando existe, sigue siendo un valor
+  calculado (`src/lib/progress.ts`), nunca escrito a mano.
+- **`valoracion` va de 0 a 10 en pasos de 0.5** y se edita con un slider, no
+  escribiendo el número.
+- **`notas`** es una lista de objetos, no un único texto libre: cada libro
+  puede tener notas ilimitadas, cada una con su propio `titulo` (opcional),
+  `contenido`, y sus fechas de creación/modificación. A diferencia del resto
+  del esquema (que usa solo fecha, `YYYY-MM-DD`), estas dos fechas son un
+  datetime ISO completo, porque varias notas pueden crearse o editarse el
+  mismo día y necesitan un criterio de orden estable (la app las muestra
+  ordenadas por `fecha_modificacion` descendente).
+- **`citas`** también es una lista de objetos: `texto`, y opcionalmente
+  `pagina`, `capitulo` y `comentario` como campos propios, en vez de anotarlos
+  a mano dentro del texto de la cita.
+- **`enlaces_relacionados` es bidireccional**: relacionar el libro A con el
+  libro B añade el id de B al array de A Y el id de A al array de B en la
+  misma escritura. La app se encarga de mantener ambos lados sincronizados;
+  el campo en sí sigue siendo un simple array de ids en cada libro.
+- **Autocompletado por ISBN**: al escribir un ISBN válido (10 o 13 dígitos) en
+  el diálogo de añadir libro o en la ficha de un libro existente, la app
+  consulta Open Library y, si no encuentra nada, Google Books como respaldo
+  (`src-tauri/src/metadata.rs`), y rellena los campos que estén vacíos —nunca
+  pisa datos que el usuario ya haya escrito. La portada encontrada se
+  descarga y se guarda en `covers/`, nunca como URL externa: si falla la
+  búsqueda o no hay conexión, no pasa nada visible, simplemente no se rellena
+  nada.
+- **Multi-vault / multi-dispositivo**: como todo es texto plano, dos vaults se
+  sincronizan con cualquier herramienta de archivos (Git, Syncthing, Dropbox...).
+  Al abrir la misma carpeta en otro ordenador, `config.json` hace que la app se
+  vea igual (mismo tema, misma vista, mismo tamaño de ventana, mismo color de
+  acento) y `mybooks.json`/`myaudiobooks.json` traen todos los libros y
+  audiolibros.
+- **No hay campo de género**: los "anaqueles" del sidebar no son una
+  categoría manual ni un género — son un filtro por año de lectura, derivado
+  de `fechas.inicio_lectura` (o `fechas.fin_lectura` si no hay fecha de
+  inicio). No es un campo propio del esquema, así que nunca puede
+  desincronizarse.
+
+La struct Rust equivalente vive en
+[`src-tauri/src/library.rs`](../src-tauri/src/library.rs) y el tipo TypeScript
+en [`src/types/book.ts`](../src/types/book.ts); ambos deben mantenerse en
+sincronía con este documento.

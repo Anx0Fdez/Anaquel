@@ -1,0 +1,83 @@
+.confirm-delete-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.confirm-delete-trigger:hover {
+  background: var(--bg-hover);
+  color: var(--status-quiero_leer);
+}
+
+.confirm-delete-trigger--md {
+  width: 32px;
+  height: 32px;
+}
+
+.confirm-delete-trigger--sm {
+  width: 26px;
+  height: 26px;
+}
+
+.confirm-delete-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.confirm-delete-row--md {
+  font-size: 12.5px;
+}
+
+.confirm-delete-row--sm {
+  font-size: 11.5px;
+}
+
+.confirm-delete-yes,
+.confirm-delete-no {
+  border: none;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-delete-row--md .confirm-delete-yes,
+.confirm-delete-row--md .confirm-delete-no {
+  padding: 6px 11px;
+  font-size: 12.5px;
+}
+
+.confirm-delete-row--sm .confirm-delete-yes,
+.confirm-delete-row--sm .confirm-delete-no {
+  padding: 4px 9px;
+  font-size: 11.5px;
+}
+
+.confirm-delete-yes {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.confirm-delete-yes:hover {
+  filter: brightness(1.08);
+}
+
+.confirm-delete-no {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.confirm-delete-no:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}

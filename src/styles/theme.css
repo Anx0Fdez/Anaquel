@@ -1,0 +1,122 @@
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Toda la app usa una única tipografía — --font-serif queda como alias de
+     --font-sans para no tener que tocar cada componente que lo usaba
+     (títulos de libro, cabeceras de diálogo, etc.). */
+  --font-serif: var(--font-sans);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --status-leyendo: #4c86e0;
+  --status-leyendo-bg: rgba(76, 134, 224, 0.16);
+  --status-leido: #4fa876;
+  --status-leido-bg: rgba(79, 168, 118, 0.16);
+  --status-quiero_leer: #d99a3f;
+  --status-quiero_leer-bg: rgba(217, 154, 63, 0.16);
+  --status-pospuesto: #7c93a8;
+  --status-pospuesto-bg: rgba(124, 147, 168, 0.18);
+  --status-audiolibro: #9c7fe0;
+  --status-audiolibro-bg: rgba(156, 127, 224, 0.16);
+  --status-abandonado: #8a8378;
+  --status-abandonado-bg: rgba(138, 131, 120, 0.16);
+
+  color-scheme: dark;
+  --bg: #1e1e1e;
+  --bg-elevated: #252525;
+  --bg-inset: #181818;
+  --bg-hover: #2a2a2a;
+  --bg-active: color-mix(in srgb, var(--accent) 18%, var(--bg-hover));
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #dcdcdc;
+  --text-muted: #9a9a9a;
+  --text-faint: #6e6e6e;
+  --accent: #fe9d16;
+  --accent-text: #1f1710;
+  --scrollbar: rgba(255, 255, 255, 0.12);
+
+  /* Única excepción a la regla de "diseño plano sin sombras": las portadas
+     de libro (cuadrícula y detalle) llevan una sombra sutil porque así se
+     leen como objetos físicos, no como bloques de color. No usar en nada
+     más. */
+  --shadow-cover: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #faf7f2;
+  --bg-elevated: #ffffff;
+  --bg-inset: #f1ece3;
+  --bg-hover: #f0eae0;
+  --bg-active: color-mix(in srgb, var(--accent) 26%, var(--bg-hover));
+  --border: rgba(30, 25, 18, 0.09);
+  --border-strong: rgba(30, 25, 18, 0.16);
+  --text: #211c15;
+  --text-muted: #756d5f;
+  --text-faint: #a49b8a;
+  --accent: #c2700c;
+  --accent-text: #1f1710;
+  --scrollbar: rgba(30, 25, 18, 0.16);
+
+  /* Los colores de estado del modo oscuro son demasiado claros sobre fondos
+     claros (poco contraste) — el modo claro usa una variante más oscura y
+     saturada de cada uno, igual que ya se hacía con --accent. */
+  --status-leyendo: #3768c2;
+  --status-leyendo-bg: rgba(55, 104, 194, 0.12);
+  --status-leido: #2f8a5c;
+  --status-leido-bg: rgba(47, 138, 92, 0.12);
+  --status-quiero_leer: #b47620;
+  --status-quiero_leer-bg: rgba(180, 118, 32, 0.14);
+  --status-pospuesto: #5a7187;
+  --status-pospuesto-bg: rgba(90, 113, 135, 0.14);
+  --status-audiolibro: #7c5cca;
+  --status-audiolibro-bg: rgba(124, 92, 202, 0.14);
+  --status-abandonado: #6e675a;
+  --status-abandonado-bg: rgba(110, 103, 90, 0.14);
+
+  --shadow-cover: 0 6px 16px rgba(20, 16, 10, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+button,
+input {
+  font-family: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+

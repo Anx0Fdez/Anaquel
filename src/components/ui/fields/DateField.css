@@ -1,0 +1,254 @@
+.date-field {
+  position: relative;
+}
+
+.date-field-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-faint);
+  outline: none;
+  cursor: pointer;
+  transition: background-color 180ms ease-out, border-color 180ms ease-out, box-shadow 180ms ease-out;
+}
+
+.date-field-trigger:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+
+.date-field-trigger[aria-expanded="true"] {
+  background: var(--bg-inset);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--bg-active);
+}
+
+.date-field-trigger-label {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-field-trigger-label--empty {
+  color: var(--text-faint);
+}
+
+.date-field-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: background-color 120ms ease-out, color 120ms ease-out;
+}
+
+.date-field-clear:hover {
+  background: var(--border-strong);
+  color: var(--text);
+}
+
+@keyframes dateFieldIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dateFieldOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+}
+
+.date-field-panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 252px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  animation: dateFieldIn 170ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  transform-origin: top left;
+}
+
+.date-field-panel--closing {
+  animation: dateFieldOut 160ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.date-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.date-field-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 120ms ease-out, color 120ms ease-out;
+}
+
+.date-field-nav:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+@keyframes dateFieldMonthFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.date-field-month {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--text);
+  text-transform: capitalize;
+  animation: dateFieldMonthFade 180ms ease both;
+}
+
+.date-field-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.date-field-weekdays span {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.date-field-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+@keyframes dateGridInNext {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes dateGridInPrev {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.date-field-grid--next {
+  animation: dateGridInNext 180ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.date-field-grid--prev {
+  animation: dateGridInPrev 180ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.date-field-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 140ms ease-out, color 140ms ease-out, transform 120ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.date-field-cell:hover {
+  background: var(--bg-hover);
+  transform: scale(1.08);
+}
+
+.date-field-cell--empty {
+  cursor: default;
+}
+
+.date-field-cell--today {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+@keyframes dateCellPop {
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.date-field-cell--selected {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 700;
+  animation: dateCellPop 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.date-field-cell--selected:hover {
+  background: var(--accent);
+  transform: scale(1.08);
+}

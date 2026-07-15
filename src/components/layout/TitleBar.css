@@ -1,0 +1,48 @@
+.titlebar {
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+
+.titlebar[data-platform="macos"] {
+  height: 28px;
+  padding-left: 78px;
+  background: transparent;
+  border-bottom: none;
+}
+
+.titlebar-drag {
+  flex: 1;
+}
+
+.titlebar-controls {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+.titlebar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 180ms ease-out, color 180ms ease-out;
+}
+
+.titlebar-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.titlebar-btn--close:hover {
+  background: #e81123;
+  color: #ffffff;
+}

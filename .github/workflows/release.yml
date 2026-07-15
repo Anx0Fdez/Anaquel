@@ -1,0 +1,65 @@
+name: Release
+
+# Se dispara al empujar una etiqueta con forma vX.Y.Z (por ejemplo v1.2.0).
+# Compila Anaquel para Windows y Linux, y publica un Release en GitHub como
+# borrador con los instaladores ya adjuntos — solo queda revisar/escribir las
+# notas de la versión y pulsar "Publish" desde la propia web de GitHub.
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+          - platform: ubuntu-22.04
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cachear dependencias de Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Instalar dependencias de sistema (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias del frontend
+        run: npm ci
+
+      - name: Calcular versión a partir de la etiqueta
+        id: version
+        shell: bash
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Compilar y publicar
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Anaquel ${{ steps.version.outputs.version }}"
+          releaseBody: |
+            ## Novedades
+
+            _Completa esta sección con un resumen de los cambios antes de publicar el Release._
+          releaseDraft: true
+          prerelease: false
