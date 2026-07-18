@@ -31,10 +31,7 @@ pub enum FormatoLibro {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Progreso {
-    pub pagina_actual: Option<u32>,
     pub paginas_totales: Option<u32>,
-    pub porcentaje: Option<f32>,
-    pub ultima_lectura: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,20 +47,6 @@ pub struct Fechas {
     pub anadido: String,
     pub inicio_lectura: Option<String>,
     pub fin_lectura: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EdicionAdicional {
-    pub formato: FormatoLibro,
-    pub editorial: Option<String>,
-    pub duracion_min: Option<u32>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Prestamo {
-    pub persona: String,
-    pub fecha: Option<String>,
-    pub devolucion_prevista: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -88,12 +71,8 @@ pub struct Cita {
 pub struct Book {
     pub id: String,
     pub titulo: String,
-    #[serde(default)]
-    pub subtitulo: Option<String>,
     pub titulo_original: Option<String>,
     pub autor: String,
-    #[serde(default)]
-    pub autores_adicionales: Vec<String>,
     pub isbn: Option<String>,
     pub isbn13: Option<String>,
     pub portada: Option<String>,
@@ -103,8 +82,6 @@ pub struct Book {
     pub idioma: Option<String>,
     #[serde(default)]
     pub editorial: Option<String>,
-    #[serde(default)]
-    pub fecha_publicacion: Option<String>,
     #[serde(default)]
     pub etiquetas: Vec<String>,
     pub valoracion: Option<f32>,
@@ -121,17 +98,6 @@ pub struct Book {
     pub progreso: Progreso,
     pub saga: Option<Saga>,
     pub fechas: Fechas,
-    pub ubicacion_fisica: Option<String>,
-    #[serde(default)]
-    pub prestamo: Option<Prestamo>,
-    #[serde(default)]
-    pub ediciones: Vec<EdicionAdicional>,
-    #[serde(default)]
-    pub enlaces_relacionados: Vec<String>,
-    #[serde(default)]
-    pub anaqueles: Vec<String>,
-    #[serde(default)]
-    pub descripcion: Option<String>,
     #[serde(default)]
     pub notas: Vec<Nota>,
     #[serde(default)]

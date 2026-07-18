@@ -26,19 +26,16 @@ copiado, así que no puede duplicar ni perder nada).
 libros) — el `formato` de cada libro decide a cuál de los dos archivos va, de
 forma transparente para el frontend, que sigue viéndolos como un único array
 unificado (la separación por archivo vive solo en `src-tauri/src/library.rs`).
-El campo `id` es lo único que no debe cambiar nunca: es lo que usa
-`enlaces_relacionados` para referenciar un libro
-aunque se le cambie el título.
+El campo `id` es lo único que no debe cambiar nunca: identifica al libro de
+forma estable aunque se le cambie el título.
 
 ```json
 [
   {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "titulo": "El nombre del viento",
-    "subtitulo": null,
     "titulo_original": "The Name of the Wind",
     "autor": "Patrick Rothfuss",
-    "autores_adicionales": [],
     "isbn": "9788401352836",
     "isbn13": "9788401352836",
     "portada": "covers/550e8400.jpg",
@@ -46,26 +43,16 @@ aunque se le cambie el título.
     "formato": "fisico",
     "idioma": "es",
     "editorial": "Plaza & Janés",
-    "fecha_publicacion": "2007-03-27",
     "etiquetas": ["saga", "favorito"],
     "valoracion": 9,
     "favorito": true,
     "comprar_fisico": false,
     "relectura": false,
     "progreso": {
-      "pagina_actual": 210,
-      "paginas_totales": 662,
-      "porcentaje": 31,
-      "ultima_lectura": "2026-07-10"
+      "paginas_totales": 662
     },
     "saga": { "nombre": "Crónica del asesino de reyes", "numero": 1, "total_libros": 3 },
     "fechas": { "añadido": "2026-06-01", "inicio_lectura": "2026-06-20", "fin_lectura": null },
-    "ubicacion_fisica": "Estantería salón, balda 2",
-    "prestamo": null,
-    "ediciones": [],
-    "enlaces_relacionados": [],
-    "anaqueles": ["Fantasía"],
-    "descripcion": "Sinopsis o texto de contraportada del libro.",
     "notas": [
       {
         "id": "9c1f2b3a-1111-4b2a-8b2a-000000000001",
@@ -99,28 +86,16 @@ aunque se le cambie el título.
   índice/caché aparte para que la búsqueda sea instantánea, a costa de que el
   archivo no se pueda editar libro a libro fuera de la app tan cómodamente como
   notas individuales de Obsidian.
-- **`ediciones`** registra formatos adicionales del mismo libro (p. ej. tienes
-  el físico Y el audiolibro):
-  ```json
-  "ediciones": [{ "formato": "audiolibro", "editorial": "Audible", "duracion_min": 970 }]
-  ```
 - **`comprar_fisico`** solo tiene sentido cuando `formato` es `audiolibro` y
   `estado` es `leido` — la interfaz solo muestra su casilla en ese caso, pero
   el campo existe siempre (con `false` por defecto) para no complicar el
   esquema con condicionales.
 - **`relectura`** marca un libro (no audiolibro) para retomarlo en el futuro;
   no depende de ningún otro campo.
-- **`prestamo`** es `null` si el libro no está prestado, o un objeto con
-  `persona`, `fecha` (cuándo se prestó) y `devolucion_prevista`. Un único
-  objeto anidado en vez de campos sueltos, igual que `saga` o `fechas`.
-- **El número de páginas no tiene un campo propio**: vive en
-  `progreso.paginas_totales`, que ya usan tanto el progreso de lectura como
-  las estadísticas anuales — así no hay dos sitios que puedan desincronizarse.
-- **`progreso.pagina_actual` y `progreso.porcentaje` ya no tienen UI propia**:
-  la interfaz dejó de mostrar un contador de "página en la que voy", así que
-  estos dos campos solo se rellenan si ya venían de datos antiguos o de una
-  fuente externa. `progreso.porcentaje`, cuando existe, sigue siendo un valor
-  calculado (`src/lib/progress.ts`), nunca escrito a mano.
+- **`progreso` solo guarda `paginas_totales`**: es el único dato de progreso
+  con UI propia (se muestra en la ficha del libro, en la tabla y en el
+  export), y también lo usan las estadísticas anuales — así no hay dos sitios
+  que puedan desincronizarse.
 - **`valoracion` va de 0 a 10 en pasos de 0.5** y se edita con un slider, no
   escribiendo el número.
 - **`notas`** es una lista de objetos, no un único texto libre: cada libro
@@ -133,10 +108,6 @@ aunque se le cambie el título.
 - **`citas`** también es una lista de objetos: `texto`, y opcionalmente
   `pagina`, `capitulo` y `comentario` como campos propios, en vez de anotarlos
   a mano dentro del texto de la cita.
-- **`enlaces_relacionados` es bidireccional**: relacionar el libro A con el
-  libro B añade el id de B al array de A Y el id de A al array de B en la
-  misma escritura. La app se encarga de mantener ambos lados sincronizados;
-  el campo en sí sigue siendo un simple array de ids en cada libro.
 - **Autocompletado por ISBN**: al escribir un ISBN válido (10 o 13 dígitos) en
   el diálogo de añadir libro o en la ficha de un libro existente, la app
   consulta Open Library y, si no encuentra nada, Google Books como respaldo
