@@ -164,7 +164,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
     const start = Date.now();
 
     try {
-      await runExport(targetPath, books);
+      await runExport(targetPath, books, theme, accentColor);
     } catch (err) {
       if (!exportCancelledRef.current) setSaveError(String(err));
     }

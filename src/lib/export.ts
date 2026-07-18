@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { save as saveDialog } from "@tauri-apps/plugin-dialog";
-import type { Book } from "../types/book";
+import type { Book, Theme } from "../types/book";
 
 /** Pide dónde guardar el .xlsx. Devuelve `null` si el usuario cancela el diálogo. */
 export function pickExportPath(): Promise<string | null> {
@@ -11,9 +11,19 @@ export function pickExportPath(): Promise<string | null> {
   });
 }
 
-/** Genera el .xlsx (libros y audiolibros en hojas separadas) directamente en `targetPath`. */
-export function runExport(targetPath: string, books: Book[]): Promise<void> {
-  return invoke("export_library", { targetPath, books });
+/**
+ * Genera el .xlsx (libros y audiolibros en hojas separadas) directamente en
+ * `targetPath`. `theme`/`accentColor` son el tema y el color de acento
+ * activos en la app: solo afectan al aspecto del documento generado, nunca a
+ * qué datos se exportan.
+ */
+export function runExport(
+  targetPath: string,
+  books: Book[],
+  theme: Theme,
+  accentColor: string | null,
+): Promise<void> {
+  return invoke("export_library", { targetPath, books, theme, accentColor });
 }
 
 /** Pide al backend que aborte la exportación en curso lo antes posible. */
