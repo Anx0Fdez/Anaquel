@@ -47,7 +47,6 @@ export interface Cita {
 export interface Book {
   id: string; // uuid, estable aunque cambie el título
   titulo: string;
-  titulo_original: string | null;
   autor: string;
   isbn: string | null;
   isbn13: string | null;

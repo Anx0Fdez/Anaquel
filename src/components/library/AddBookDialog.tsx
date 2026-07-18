@@ -46,7 +46,6 @@ export function AddBookDialog({ vaultPath, defaultFormato, onAdd, onClose }: Add
     let nuevo: Book = {
       id,
       titulo: titulo.trim(),
-      titulo_original: null,
       autor: autor.trim(),
       isbn: isbn.trim() || null,
       isbn13: null,

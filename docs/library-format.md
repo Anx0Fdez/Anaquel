@@ -34,7 +34,6 @@ forma estable aunque se le cambie el título.
   {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "titulo": "El nombre del viento",
-    "titulo_original": "The Name of the Wind",
     "autor": "Patrick Rothfuss",
     "isbn": "9788401352836",
     "isbn13": "9788401352836",
