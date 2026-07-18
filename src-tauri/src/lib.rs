@@ -1,6 +1,7 @@
 mod export;
 mod library;
 mod metadata;
+mod updater;
 mod vault;
 
 /// Plataforma del proceso ("windows" | "macos" | "linux" | ...), para que el
@@ -31,6 +32,7 @@ pub fn run() {
             metadata::set_manual_cover,
             export::export_library,
             export::cancel_export,
+            updater::check_for_update,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,6 +1,7 @@
 import { Minus, Square, X } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { Platform } from "../../lib/platform";
+import { UpdateBadge } from "./UpdateBadge";
 import "./TitleBar.css";
 
 interface TitleBarProps {
@@ -14,6 +15,7 @@ export function TitleBar({ platform }: TitleBarProps) {
 
   return (
     <div className="titlebar" data-platform={platform}>
+      <UpdateBadge />
       <div className="titlebar-drag" data-tauri-drag-region />
       {!isMac && (
         <div className="titlebar-controls">
