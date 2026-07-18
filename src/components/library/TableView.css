@@ -53,6 +53,10 @@
   color: var(--accent);
 }
 
+.table-col-field--center {
+  text-align: center;
+}
+
 .table-sort-arrow {
   margin-left: 6px;
   font-size: 8px;
@@ -92,6 +96,10 @@
 
 .table-cell--muted {
   color: var(--text-muted);
+}
+
+.table-cell--center {
+  text-align: center;
 }
 
 .table-empty {

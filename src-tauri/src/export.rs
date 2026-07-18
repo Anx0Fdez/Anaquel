@@ -41,8 +41,9 @@ fn formato_label(formato: &FormatoLibro) -> &'static str {
     }
 }
 
-const HEADERS: [&str; 9] = [
-    "Título", "Autor", "Estado", "Formato", "Editorial", "Páginas", "Valoración", "Favorito", "ISBN",
+const HEADERS: [&str; 13] = [
+    "Título", "Autor", "Saga", "Estado", "Formato", "Editorial", "Páginas", "Valoración",
+    "Favorito", "Relectura", "Inicio lectura", "Fin lectura", "ISBN",
 ];
 
 const CANCELLED: &str = "cancelado";
@@ -63,24 +64,40 @@ fn write_sheet(workbook: &mut Workbook, name: &str, books: &[Book], cancelled: &
             return Err(CANCELLED.to_string());
         }
         let row = (i + 1) as u32;
+        let saga = book
+            .saga
+            .as_ref()
+            .map(|s| format!("{} #{}", s.nombre, s.numero))
+            .unwrap_or_default();
+
         sheet.write_string(row, 0, &book.titulo).map_err(|e| e.to_string())?;
         sheet.write_string(row, 1, &book.autor).map_err(|e| e.to_string())?;
-        sheet.write_string(row, 2, estado_label(&book.estado)).map_err(|e| e.to_string())?;
-        sheet.write_string(row, 3, formato_label(&book.formato)).map_err(|e| e.to_string())?;
+        sheet.write_string(row, 2, &saga).map_err(|e| e.to_string())?;
+        sheet.write_string(row, 3, estado_label(&book.estado)).map_err(|e| e.to_string())?;
+        sheet.write_string(row, 4, formato_label(&book.formato)).map_err(|e| e.to_string())?;
         sheet
-            .write_string(row, 4, book.editorial.as_deref().unwrap_or(""))
+            .write_string(row, 5, book.editorial.as_deref().unwrap_or(""))
             .map_err(|e| e.to_string())?;
         if let Some(p) = book.progreso.paginas_totales {
-            sheet.write_number(row, 5, p as f64).map_err(|e| e.to_string())?;
+            sheet.write_number(row, 6, p as f64).map_err(|e| e.to_string())?;
         }
         if let Some(v) = book.valoracion {
-            sheet.write_number(row, 6, v as f64).map_err(|e| e.to_string())?;
+            sheet.write_number(row, 7, v as f64).map_err(|e| e.to_string())?;
         }
         sheet
-            .write_string(row, 7, if book.favorito { "Sí" } else { "No" })
+            .write_string(row, 8, if book.favorito { "Sí" } else { "No" })
             .map_err(|e| e.to_string())?;
         sheet
-            .write_string(row, 8, book.isbn.as_deref().unwrap_or(""))
+            .write_string(row, 9, if book.relectura { "Sí" } else { "No" })
+            .map_err(|e| e.to_string())?;
+        sheet
+            .write_string(row, 10, book.fechas.inicio_lectura.as_deref().unwrap_or(""))
+            .map_err(|e| e.to_string())?;
+        sheet
+            .write_string(row, 11, book.fechas.fin_lectura.as_deref().unwrap_or(""))
+            .map_err(|e| e.to_string())?;
+        sheet
+            .write_string(row, 12, book.isbn.as_deref().unwrap_or(""))
             .map_err(|e| e.to_string())?;
     }
 
