@@ -222,7 +222,7 @@
 }
 
 .fact-row--estado .field.toggle-inline {
-  margin-left: 0;
+  margin-left: auto;
 }
 
 .fact-row .field > span:first-child {
