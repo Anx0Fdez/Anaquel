@@ -62,8 +62,6 @@ export function AddBookDialog({ vaultPath, defaultFormato, onAdd, onClose }: Add
       progreso: { paginas_totales: null },
       saga: null,
       fechas: { añadido: hoy, inicio_lectura: null, fin_lectura: estado === "leido" ? hoy : null },
-      notas: [],
-      citas: [],
     };
     if (result) {
       nuevo = applyMetadata(nuevo, result);
