@@ -13,10 +13,7 @@ export type EstadoLectura =
 export type FormatoLibro = "fisico" | "ebook" | "audiolibro";
 
 export interface Progreso {
-  pagina_actual: number | null;
   paginas_totales: number | null;
-  porcentaje: number | null;
-  ultima_lectura: string | null; // ISO date
 }
 
 export interface Saga {
@@ -29,18 +26,6 @@ export interface Fechas {
   añadido: string; // ISO date
   inicio_lectura: string | null;
   fin_lectura: string | null;
-}
-
-export interface EdicionAdicional {
-  formato: FormatoLibro;
-  editorial: string | null;
-  duracion_min: number | null; // para audiolibros
-}
-
-export interface Prestamo {
-  persona: string;
-  fecha: string | null; // ISO date, cuándo se prestó
-  devolucion_prevista: string | null; // ISO date
 }
 
 export interface Nota {
@@ -62,10 +47,8 @@ export interface Cita {
 export interface Book {
   id: string; // uuid, estable aunque cambie el título
   titulo: string;
-  subtitulo: string | null;
   titulo_original: string | null;
   autor: string;
-  autores_adicionales: string[];
   isbn: string | null;
   isbn13: string | null;
   portada: string | null; // ruta relativa a .ananquel/covers/
@@ -73,7 +56,6 @@ export interface Book {
   formato: FormatoLibro;
   idioma: string | null;
   editorial: string | null;
-  fecha_publicacion: string | null; // ISO date
   etiquetas: string[];
   valoracion: number | null; // 0-10, en pasos de 0.5
   favorito: boolean;
@@ -82,12 +64,6 @@ export interface Book {
   progreso: Progreso;
   saga: Saga | null;
   fechas: Fechas;
-  ubicacion_fisica: string | null;
-  prestamo: Prestamo | null;
-  ediciones: EdicionAdicional[];
-  enlaces_relacionados: string[]; // ids de otros libros
-  anaqueles: string[]; // estanterías personalizadas
-  descripcion: string | null; // sinopsis/contraportada
   notas: Nota[];
   citas: Cita[];
 }

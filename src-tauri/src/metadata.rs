@@ -8,14 +8,10 @@ use serde_json::Value;
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct BookMetadata {
     pub titulo: Option<String>,
-    pub subtitulo: Option<String>,
     pub autor: Option<String>,
-    pub autores_adicionales: Vec<String>,
     pub editorial: Option<String>,
-    pub fecha_publicacion: Option<String>,
     pub paginas_totales: Option<u32>,
     pub idioma: Option<String>,
-    pub descripcion: Option<String>,
     pub isbn13: Option<String>,
     pub portada: Option<String>,
 }
@@ -34,34 +30,6 @@ fn sanitize_isbn(raw: &str) -> Option<String> {
         Some(cleaned)
     } else {
         None
-    }
-}
-
-/// Solo acepta fechas que ya vienen en forma YYYY, YYYY-MM o YYYY-MM-DD
-/// (comprobación manual, sin `chrono` ni `regex`). Cualquier otra cosa —p. ej.
-/// el texto libre "March 27, 2007" que a veces devuelve Open Library— se
-/// descarta en vez de guardar una fecha no-ISO que `<input type="date">`
-/// no sabría mostrar.
-fn normalize_date(raw: &str) -> Option<String> {
-    let raw = raw.trim();
-    let all_digits = |s: &str| !s.is_empty() && s.chars().all(|c| c.is_ascii_digit());
-    let parts: Vec<&str> = raw.split('-').collect();
-    match parts.as_slice() {
-        [y] if y.len() == 4 && all_digits(y) => Some(format!("{y}-01-01")),
-        [y, m] if y.len() == 4 && m.len() == 2 && all_digits(y) && all_digits(m) => {
-            Some(format!("{y}-{m}-01"))
-        }
-        [y, m, d]
-            if y.len() == 4
-                && m.len() == 2
-                && d.len() == 2
-                && all_digits(y)
-                && all_digits(m)
-                && all_digits(d) =>
-        {
-            Some(raw.to_string())
-        }
-        _ => None,
     }
 }
 
@@ -87,7 +55,6 @@ async fn fetch_open_library(client: &reqwest::Client, isbn: &str) -> Option<(Boo
     let entry = body.get(format!("ISBN:{isbn}").as_str())?;
 
     let titulo = first_str(entry, "title");
-    let subtitulo = first_str(entry, "subtitle");
 
     let mut autores: Vec<String> = entry
         .get("authors")
@@ -106,8 +73,6 @@ async fn fetch_open_library(client: &reqwest::Client, isbn: &str) -> Option<(Boo
         .and_then(|arr| arr.first())
         .and_then(|p| first_str(p, "name"));
 
-    let fecha_publicacion = entry.get("publish_date").and_then(Value::as_str).and_then(normalize_date);
-
     let paginas_totales = entry.get("number_of_pages").and_then(Value::as_u64).map(|n| n as u32);
 
     let cover_url = entry
@@ -122,14 +87,10 @@ async fn fetch_open_library(client: &reqwest::Client, isbn: &str) -> Option<(Boo
 
     let meta = BookMetadata {
         titulo,
-        subtitulo,
         autor,
-        autores_adicionales: autores,
         editorial,
-        fecha_publicacion,
         paginas_totales,
         idioma: None,
-        descripcion: None,
         isbn13: None,
         portada: None,
     };
@@ -147,7 +108,6 @@ async fn fetch_google_books(client: &reqwest::Client, isbn: &str) -> Option<(Boo
     let info = body.get("items")?.get(0)?.get("volumeInfo")?;
 
     let titulo = first_str(info, "title");
-    let subtitulo = first_str(info, "subtitle");
 
     let mut autores: Vec<String> = info
         .get("authors")
@@ -157,10 +117,8 @@ async fn fetch_google_books(client: &reqwest::Client, isbn: &str) -> Option<(Boo
     let autor = if autores.is_empty() { None } else { Some(autores.remove(0)) };
 
     let editorial = first_str(info, "publisher");
-    let fecha_publicacion = info.get("publishedDate").and_then(Value::as_str).and_then(normalize_date);
     let paginas_totales = info.get("pageCount").and_then(Value::as_u64).map(|n| n as u32);
     let idioma = first_str(info, "language");
-    let descripcion = first_str(info, "description");
 
     let isbn13 = info
         .get("industryIdentifiers")
@@ -180,14 +138,10 @@ async fn fetch_google_books(client: &reqwest::Client, isbn: &str) -> Option<(Boo
 
     let meta = BookMetadata {
         titulo,
-        subtitulo,
         autor,
-        autores_adicionales: autores,
         editorial,
-        fecha_publicacion,
         paginas_totales,
         idioma,
-        descripcion,
         isbn13,
         portada: None,
     };
