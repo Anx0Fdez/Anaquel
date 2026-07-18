@@ -71,7 +71,6 @@ pub struct Cita {
 pub struct Book {
     pub id: String,
     pub titulo: String,
-    pub titulo_original: Option<String>,
     pub autor: String,
     pub isbn: Option<String>,
     pub isbn13: Option<String>,
