@@ -50,24 +50,6 @@ pub struct Fechas {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Nota {
-    pub id: String,
-    pub titulo: Option<String>,
-    pub contenido: String,
-    pub fecha_creacion: String,
-    pub fecha_modificacion: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Cita {
-    pub id: String,
-    pub texto: String,
-    pub pagina: Option<u32>,
-    pub capitulo: Option<String>,
-    pub comentario: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Book {
     pub id: String,
     pub titulo: String,
@@ -97,10 +79,6 @@ pub struct Book {
     pub progreso: Progreso,
     pub saga: Option<Saga>,
     pub fechas: Fechas,
-    #[serde(default)]
-    pub notas: Vec<Nota>,
-    #[serde(default)]
-    pub citas: Vec<Cita>,
 }
 
 fn ananquel_dir(vault_path: &str) -> std::path::PathBuf {

@@ -28,22 +28,6 @@ export interface Fechas {
   fin_lectura: string | null;
 }
 
-export interface Nota {
-  id: string;
-  titulo: string | null;
-  contenido: string;
-  fecha_creacion: string; // ISO datetime completo
-  fecha_modificacion: string; // ISO datetime completo
-}
-
-export interface Cita {
-  id: string;
-  texto: string;
-  pagina: number | null;
-  capitulo: string | null;
-  comentario: string | null;
-}
-
 export interface Book {
   id: string; // uuid, estable aunque cambie el título
   titulo: string;
@@ -63,8 +47,6 @@ export interface Book {
   progreso: Progreso;
   saga: Saga | null;
   fechas: Fechas;
-  notas: Nota[];
-  citas: Cita[];
 }
 
 export type ViewMode = "grid" | "table";

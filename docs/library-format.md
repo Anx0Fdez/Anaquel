@@ -51,25 +51,7 @@ forma estable aunque se le cambie el título.
       "paginas_totales": 662
     },
     "saga": { "nombre": "Crónica del asesino de reyes", "numero": 1, "total_libros": 3 },
-    "fechas": { "añadido": "2026-06-01", "inicio_lectura": "2026-06-20", "fin_lectura": null },
-    "notas": [
-      {
-        "id": "9c1f2b3a-1111-4b2a-8b2a-000000000001",
-        "titulo": "Primeras impresiones",
-        "contenido": "El ritmo es muy lento al principio pero engancha a partir del capítulo 3.",
-        "fecha_creacion": "2026-06-21T18:32:04.000Z",
-        "fecha_modificacion": "2026-06-25T09:10:00.000Z"
-      }
-    ],
-    "citas": [
-      {
-        "id": "9c1f2b3a-2222-4b2a-8b2a-000000000002",
-        "texto": "El silencio de tres partes",
-        "pagina": 1,
-        "capitulo": null,
-        "comentario": "Primera línea del libro."
-      }
-    ]
+    "fechas": { "añadido": "2026-06-01", "inicio_lectura": "2026-06-20", "fin_lectura": null }
   }
 ]
 ```
@@ -97,16 +79,6 @@ forma estable aunque se le cambie el título.
   que puedan desincronizarse.
 - **`valoracion` va de 0 a 10 en pasos de 0.5** y se edita con un slider, no
   escribiendo el número.
-- **`notas`** es una lista de objetos, no un único texto libre: cada libro
-  puede tener notas ilimitadas, cada una con su propio `titulo` (opcional),
-  `contenido`, y sus fechas de creación/modificación. A diferencia del resto
-  del esquema (que usa solo fecha, `YYYY-MM-DD`), estas dos fechas son un
-  datetime ISO completo, porque varias notas pueden crearse o editarse el
-  mismo día y necesitan un criterio de orden estable (la app las muestra
-  ordenadas por `fecha_modificacion` descendente).
-- **`citas`** también es una lista de objetos: `texto`, y opcionalmente
-  `pagina`, `capitulo` y `comentario` como campos propios, en vez de anotarlos
-  a mano dentro del texto de la cita.
 - **Autocompletado por ISBN**: al escribir un ISBN válido (10 o 13 dígitos) en
   el diálogo de añadir libro o en la ficha de un libro existente, la app
   consulta Open Library y, si no encuentra nada, Google Books como respaldo
