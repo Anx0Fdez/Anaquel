@@ -1,6 +1,6 @@
 import { BookOpen, Calendar, ListChecks } from "lucide-react";
 import type { Book, EstadoLectura } from "../../../../types/book";
-import { estadoLabel, estadosDisponibles } from "../../../../types/book";
+import { ESTADOS_LECTURA, estadoLabel } from "../../../../types/book";
 import { DetailSection } from "../DetailSection";
 import { SelectField } from "../../../ui/fields/SelectField";
 import { DateField } from "../../../ui/fields/DateField";
@@ -13,7 +13,7 @@ interface EstadoSectionProps {
 
 export function EstadoSection({ book, onChange }: EstadoSectionProps) {
   const audio = book.formato === "audiolibro";
-  const ESTADO_OPTIONS = estadosDisponibles(audio, book.estado).map((e) => ({
+  const ESTADO_OPTIONS = ESTADOS_LECTURA.map((e) => ({
     value: e,
     label: estadoLabel(e, audio),
   }));

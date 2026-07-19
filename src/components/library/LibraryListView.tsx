@@ -54,6 +54,7 @@ export function LibraryListView({
         onSortKeyChange={onSortKeyChange}
         gridCardSize={gridCardSize}
         onGridCardSizeChange={onGridCardSizeChange}
+        libraryKind={libraryKind}
         onAddBook={() => setDialogOpen(true)}
       />
 
@@ -74,7 +75,7 @@ export function LibraryListView({
       {dialogOpen && (
         <AddBookDialog
           vaultPath={vaultPath}
-          defaultFormato={libraryKind === "audiolibros" ? "audiolibro" : "fisico"}
+          libraryKind={libraryKind}
           onClose={() => setDialogOpen(false)}
           onAdd={(book) => {
             onAddBook(book);

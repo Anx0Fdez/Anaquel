@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ArrowUpDown, Grid2x2, Grid3x3, LayoutGrid, Plus, Search, Square, Table2 } from "lucide-react";
-import type { GridCardSize, ViewMode } from "../../types/book";
+import type { GridCardSize, LibraryKind, ViewMode } from "../../types/book";
 import { GRID_CARD_SIZE_LABEL } from "../../types/book";
 import type { SortKey } from "../../lib/sort";
 import { SORT_LABEL } from "../../lib/sort";
@@ -16,6 +16,7 @@ interface TopbarProps {
   onSortKeyChange: (key: SortKey) => void;
   gridCardSize: GridCardSize;
   onGridCardSizeChange: (size: GridCardSize) => void;
+  libraryKind: LibraryKind;
   onAddBook: () => void;
 }
 
@@ -42,6 +43,7 @@ export function Topbar({
   onSortKeyChange,
   gridCardSize,
   onGridCardSizeChange,
+  libraryKind,
   onAddBook,
 }: TopbarProps) {
   const searchRef = useRef<HTMLInputElement>(null);
@@ -115,7 +117,7 @@ export function Topbar({
 
       <button className="topbar-add-btn" onClick={onAddBook}>
         <Plus size={16} strokeWidth={2.25} />
-        Añadir libro
+        {libraryKind === "audiolibros" ? "Añadir audiolibro" : "Añadir libro"}
       </button>
     </header>
   );
