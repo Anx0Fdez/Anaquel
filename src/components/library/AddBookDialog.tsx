@@ -13,6 +13,7 @@ import "../ui/Dialog.css";
 interface AddBookDialogProps {
   vaultPath: string;
   libraryKind: LibraryKind;
+  googleBooksApiKey: string | null;
   onAdd: (book: Book) => void;
   onClose: () => void;
 }
@@ -20,7 +21,7 @@ interface AddBookDialogProps {
 const FORMATOS_LIBRO: FormatoLibro[] = ["fisico", "ebook"];
 const FORMATO_OPTIONS = FORMATOS_LIBRO.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
 
-export function AddBookDialog({ vaultPath, libraryKind, onAdd, onClose }: AddBookDialogProps) {
+export function AddBookDialog({ vaultPath, libraryKind, googleBooksApiKey, onAdd, onClose }: AddBookDialogProps) {
   const audio = libraryKind === "audiolibros";
   const [isbn, setIsbn] = useState("");
   const [titulo, setTitulo] = useState("");
@@ -34,7 +35,7 @@ export function AddBookDialog({ vaultPath, libraryKind, onAdd, onClose }: AddBoo
 
   const ESTADO_OPTIONS = ESTADOS_LECTURA.map((s) => ({ value: s, label: estadoLabel(s, audio) }));
 
-  const { status, result } = useIsbnLookup(vaultPath, isbn);
+  const { status, result } = useIsbnLookup(vaultPath, isbn, googleBooksApiKey);
 
   useEffect(() => {
     if (!result) return;

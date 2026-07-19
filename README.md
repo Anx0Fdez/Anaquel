@@ -95,7 +95,28 @@ Anaquel/
 
 ## Configuración
 
-Cada anaquel guarda sus preferencias (tema, color de acento, tamaño de ventana, orden por defecto...) en `.ananquel/config.json`, dentro de la propia carpeta del anaquel — viajan con él si lo mueves o lo sincronizas a otro dispositivo. El formato completo de los datos de la biblioteca está documentado en [`docs/library-format.md`](docs/library-format.md).
+Cada anaquel guarda sus preferencias (tema, color de acento, tamaño de ventana, orden por defecto, API key de Google Books...) en `.ananquel/config.json`, dentro de la propia carpeta del anaquel — viajan con él si lo mueves o lo sincronizas a otro dispositivo. El formato completo de los datos de la biblioteca está documentado en [`docs/library-format.md`](docs/library-format.md).
+
+## API key de Google Books
+
+El autocompletado por ISBN busca primero en [Open Library](https://openlibrary.org/) y, si no encuentra el libro ahí, cae en [Google Books](https://books.google.com/) como respaldo. **Sin una API key, las peticiones anónimas a Google Books tienen una cuota diaria de 0** — es decir, el respaldo falla siempre en silencio, y solo encuentras lo que Open Library ya tenga indexado (que para libros recientes o de editoriales pequeñas en español suele ser poco o nada).
+
+Por qué merece la pena sacarla:
+- Es **gratis** — Google Cloud ofrece una cuota diaria de sobra para uso personal, sin necesidad de dar datos de facturación.
+- **Sin ella, el respaldo de Google Books no funciona en la práctica** — no es una mejora opcional menor, es lo que hace que la búsqueda por ISBN realmente encuentre la mayoría de libros.
+- Se configura **una sola vez** y queda guardada en tu anaquel.
+
+Cómo conseguirla:
+1. Entra en la [Google Cloud Console](https://console.cloud.google.com/) con cualquier cuenta de Google (no hace falta activar facturación).
+2. Crea un proyecto nuevo (o usa uno existente).
+3. Ve a **APIs y servicios → Biblioteca**, busca **"Books API"** y pulsa **Habilitar**.
+4. Ve a **APIs y servicios → Credenciales → Crear credenciales → Clave de API**. Se genera al momento.
+5. (Opcional, recomendado) Edita la key recién creada y en **"Restricciones de API"** limítala solo a **Books API** — así, aunque alguien la viera, no podría usarla para nada más.
+
+Cómo usarla en Anaquel:
+1. Abre el icono de engranaje (⚙) en la parte inferior de la barra lateral.
+2. Pega la key en el campo **"API key de Google Books"** y pulsa **Guardar**.
+3. Ya queda recordada para ese anaquel — no hace falta volver a introducirla salvo que cambies de key.
 
 ## Publicar una nueva versión
 

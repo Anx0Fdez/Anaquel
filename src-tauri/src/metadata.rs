@@ -143,8 +143,16 @@ async fn fetch_open_library(client: &reqwest::Client, isbn: &str) -> Option<(Boo
     Some((meta, cover_url))
 }
 
-async fn fetch_google_books(client: &reqwest::Client, isbn: &str) -> Option<(BookMetadata, Option<String>)> {
-    let url = format!("https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}");
+async fn fetch_google_books(
+    client: &reqwest::Client,
+    isbn: &str,
+    api_key: Option<&str>,
+) -> Option<(BookMetadata, Option<String>)> {
+    let mut url = format!("https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}");
+    if let Some(key) = api_key.filter(|k| !k.is_empty()) {
+        url.push_str("&key=");
+        url.push_str(key);
+    }
     let res = client.get(&url).send().await.ok()?;
     if !res.status().is_success() {
         return None;
@@ -215,6 +223,24 @@ async fn download_cover(client: &reqwest::Client, vault_path: &str, isbn: &str, 
     Some(format!("covers/{isbn}.{ext}"))
 }
 
+/// Comprueba que una API key de Google Books funciona de verdad: hace una
+/// petición mínima real contra la API con esa key y se queda solo con si
+/// respondió con éxito. Se llama únicamente cuando el usuario guarda la key
+/// desde Ajustes, nunca en segundo plano.
+#[tauri::command]
+pub async fn validate_google_books_api_key(api_key: String) -> Result<bool, String> {
+    let key = api_key.trim();
+    if key.is_empty() {
+        return Ok(false);
+    }
+    let client = build_client()?;
+    let url = format!("https://www.googleapis.com/books/v1/volumes?q=isbn:9780132350884&key={key}");
+    let Ok(res) = client.get(&url).send().await else {
+        return Ok(false);
+    };
+    Ok(res.status().is_success())
+}
+
 /// Busca metadatos por ISBN: Open Library primero, Google Books como
 /// respaldo. Prueba siempre el ISBN-13 antes que el ISBN-10 — sea cual sea
 /// el que escribió el usuario, se calcula el equivalente en el otro formato
@@ -223,7 +249,11 @@ async fn download_cover(client: &reqwest::Client, vault_path: &str, isbn: &str, 
 /// `Ok(None)`, para que agotar todos los candidatos sin resultado (o sin
 /// conexión) sea completamente silencioso en el frontend.
 #[tauri::command]
-pub async fn lookup_isbn(path: String, isbn: String) -> Result<Option<BookMetadata>, String> {
+pub async fn lookup_isbn(
+    path: String,
+    isbn: String,
+    google_books_api_key: Option<String>,
+) -> Result<Option<BookMetadata>, String> {
     let Some(clean_isbn) = sanitize_isbn(&isbn) else {
         return Ok(None);
     };
@@ -246,7 +276,7 @@ pub async fn lookup_isbn(path: String, isbn: String) -> Result<Option<BookMetada
     for candidate in &candidates {
         found = match fetch_open_library(&client, candidate).await {
             Some(result) => Some(result),
-            None => fetch_google_books(&client, candidate).await,
+            None => fetch_google_books(&client, candidate, google_books_api_key.as_deref()).await,
         };
         if found.is_some() {
             break;

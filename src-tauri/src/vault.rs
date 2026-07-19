@@ -41,6 +41,12 @@ pub struct VaultConfig {
     /// | "pequeno"). `None` usa "mediano".
     #[serde(default)]
     pub grid_card_size: Option<String>,
+    /// API key propia de Google Books, para el respaldo del autocompletado
+    /// por ISBN cuando Open Library no encuentra nada. Sin ella, Google
+    /// Books limita las peticiones anónimas a una cuota diaria de 0 — la key
+    /// es gratuita y se saca en la Google Cloud Console.
+    #[serde(default)]
+    pub google_books_api_key: Option<String>,
 }
 
 impl Default for VaultConfig {
@@ -55,6 +61,7 @@ impl Default for VaultConfig {
             default_sort_key: None,
             last_library_kind: None,
             grid_card_size: None,
+            google_books_api_key: None,
         }
     }
 }

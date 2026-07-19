@@ -38,6 +38,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
   const [windowWidth, setWindowWidth] = useState<number | null>(vault.config.windowWidth);
   const [windowHeight, setWindowHeight] = useState<number | null>(vault.config.windowHeight);
   const [accentColor, setAccentColor] = useState<string | null>(vault.config.accentColor);
+  const [googleBooksApiKey, setGoogleBooksApiKey] = useState<string | null>(vault.config.googleBooksApiKey);
   const [gridCardSize, setGridCardSize] = useState<GridCardSize>(
     (vault.config.gridCardSize as GridCardSize | null) ?? "mediano",
   );
@@ -103,6 +104,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
       defaultSortKey: sortKey,
       lastLibraryKind: libraryKind,
       gridCardSize,
+      googleBooksApiKey,
     }).catch(() => {
       // si falla el guardado, la próxima interacción del usuario lo reintentará igualmente
     });
@@ -117,6 +119,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
     sortKey,
     libraryKind,
     gridCardSize,
+    googleBooksApiKey,
   ]);
 
   async function handleSaveWindowSize() {
@@ -275,6 +278,8 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
         exporting={exportPhase !== "idle"}
         accentColor={accentColor}
         onAccentColorChange={setAccentColor}
+        googleBooksApiKey={googleBooksApiKey}
+        onGoogleBooksApiKeyChange={setGoogleBooksApiKey}
         onSaveWindowSize={handleSaveWindowSize}
       />
 
@@ -290,6 +295,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
             <LibraryListView
               vaultPath={vault.path}
               libraryKind={libraryKind}
+              googleBooksApiKey={googleBooksApiKey}
               books={visibleBooks}
               query={query}
               onQueryChange={setQuery}
@@ -310,6 +316,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
             <BookDetailScreen
               key={renderedBook.id}
               vaultPath={vault.path}
+              googleBooksApiKey={googleBooksApiKey}
               book={renderedBook}
               closing={panelClosing}
               onBack={() => setSelectedBookId(null)}

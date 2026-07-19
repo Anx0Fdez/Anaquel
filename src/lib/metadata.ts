@@ -3,8 +3,17 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import type { Book } from "../types/book";
 import type { BookMetadata } from "../types/metadata";
 
-export function lookupIsbn(vaultPath: string, isbn: string): Promise<BookMetadata | null> {
-  return invoke("lookup_isbn", { path: vaultPath, isbn });
+export function lookupIsbn(
+  vaultPath: string,
+  isbn: string,
+  googleBooksApiKey: string | null,
+): Promise<BookMetadata | null> {
+  return invoke("lookup_isbn", { path: vaultPath, isbn, googleBooksApiKey });
+}
+
+/** Hace una petición real a Google Books con esta key para comprobar que funciona. */
+export function validateGoogleBooksApiKey(apiKey: string): Promise<boolean> {
+  return invoke("validate_google_books_api_key", { apiKey });
 }
 
 export function readCoverImage(vaultPath: string, portada: string): Promise<string> {

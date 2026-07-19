@@ -13,6 +13,7 @@ export interface VaultConfig {
   defaultSortKey: string | null;
   lastLibraryKind: string | null;
   gridCardSize: string | null;
+  googleBooksApiKey: string | null;
 }
 
 export interface VaultInfo {

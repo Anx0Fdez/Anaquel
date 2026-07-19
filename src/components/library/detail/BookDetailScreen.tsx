@@ -13,6 +13,7 @@ import "./BookDetailScreen.css";
 interface BookDetailScreenProps {
   book: Book;
   vaultPath: string;
+  googleBooksApiKey: string | null;
   closing?: boolean;
   onBack: () => void;
   onChange: (book: Book) => void;
@@ -22,6 +23,7 @@ interface BookDetailScreenProps {
 export function BookDetailScreen({
   book,
   vaultPath,
+  googleBooksApiKey,
   closing,
   onBack,
   onChange,
@@ -51,7 +53,12 @@ export function BookDetailScreen({
       </header>
 
       <div className="book-detail-body">
-        <InfoGeneralSection book={book} vaultPath={vaultPath} onChange={onChange} />
+        <InfoGeneralSection
+          book={book}
+          vaultPath={vaultPath}
+          googleBooksApiKey={googleBooksApiKey}
+          onChange={onChange}
+        />
         <EstadoSection book={book} onChange={onChange} />
       </div>
     </div>

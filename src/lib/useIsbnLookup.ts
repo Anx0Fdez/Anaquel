@@ -14,7 +14,7 @@ function normalizeIsbn(raw: string): string {
  * antes de que resuelva la búsqueda anterior) hace de debounce y de cancelación
  * de respuestas obsoletas a la vez.
  */
-export function useIsbnLookup(vaultPath: string, isbn: string) {
+export function useIsbnLookup(vaultPath: string, isbn: string, googleBooksApiKey: string | null) {
   const [status, setStatus] = useState<IsbnLookupStatus>("idle");
   const [result, setResult] = useState<BookMetadata | null>(null);
 
@@ -30,7 +30,7 @@ export function useIsbnLookup(vaultPath: string, isbn: string) {
     setStatus("loading");
 
     const timer = window.setTimeout(() => {
-      lookupIsbn(vaultPath, normalized)
+      lookupIsbn(vaultPath, normalized, googleBooksApiKey)
         .then((meta) => {
           if (cancelled) return;
           setResult(meta);
@@ -47,7 +47,7 @@ export function useIsbnLookup(vaultPath: string, isbn: string) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [isbn, vaultPath]);
+  }, [isbn, vaultPath, googleBooksApiKey]);
 
   return { status, result };
 }

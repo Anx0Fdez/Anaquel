@@ -28,6 +28,7 @@ pub fn run() {
             library::load_books,
             library::save_books,
             metadata::lookup_isbn,
+            metadata::validate_google_books_api_key,
             metadata::read_cover_image,
             metadata::set_manual_cover,
             export::export_library,

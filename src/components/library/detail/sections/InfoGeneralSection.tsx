@@ -14,18 +14,19 @@ import { invalidateCoverCache } from "../../../../lib/useCoverImage";
 interface InfoGeneralSectionProps {
   book: Book;
   vaultPath: string;
+  googleBooksApiKey: string | null;
   onChange: (book: Book) => void;
 }
 
 const FORMATOS: FormatoLibro[] = ["fisico", "ebook", "audiolibro"];
 const FORMATO_OPTIONS = FORMATOS.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
 
-export function InfoGeneralSection({ book, vaultPath, onChange }: InfoGeneralSectionProps) {
+export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, onChange }: InfoGeneralSectionProps) {
   // Vacío a propósito (no `book.isbn`): así abrir un libro que ya tiene ISBN
   // no dispara una búsqueda de fondo cada vez — solo se busca cuando el
   // usuario edita el campo de verdad.
   const [isbnDraft, setIsbnDraft] = useState("");
-  const { status, result } = useIsbnLookup(vaultPath, isbnDraft);
+  const { status, result } = useIsbnLookup(vaultPath, isbnDraft, googleBooksApiKey);
 
   useEffect(() => {
     if (result) onChange(applyMetadata(book, result));

@@ -13,7 +13,7 @@ mi-biblioteca/
 └── .ananquel/
     ├── config.json    # tema, última vista, orden de anaqueles, tamaño de ventana, color
     │                  # de acento, orden de biblioteca por defecto, última biblioteca activa,
-    │                  # tamaño de portada en cuadrícula
+    │                  # tamaño de portada en cuadrícula, API key de Google Books
     └── covers/        # portadas descargadas automáticamente por ISBN, o añadidas a mano
 ```
 
