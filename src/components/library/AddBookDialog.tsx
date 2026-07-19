@@ -6,6 +6,8 @@ import { useIsbnLookup } from "../../lib/useIsbnLookup";
 import { applyMetadata } from "../../lib/metadata";
 import { DropdownSelect } from "../ui/fields/DropdownSelect";
 import { StarRatingField } from "../ui/fields/StarRatingField";
+import { ToggleField } from "../ui/fields/ToggleField";
+import { DateField } from "../ui/fields/DateField";
 import "../ui/Dialog.css";
 
 interface AddBookDialogProps {
@@ -25,6 +27,9 @@ export function AddBookDialog({ vaultPath, defaultFormato, onAdd, onClose }: Add
   const [estado, setEstado] = useState<EstadoLectura>("quiero_leer");
   const [formato, setFormato] = useState<FormatoLibro>(defaultFormato);
   const [valoracion, setValoracion] = useState<number | null>(null);
+  const [relectura, setRelectura] = useState(false);
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
 
   const audio = formato === "audiolibro";
   const ESTADO_OPTIONS = estadosDisponibles(audio, estado).map((s) => ({ value: s, label: estadoLabel(s, audio) }));
@@ -48,20 +53,21 @@ export function AddBookDialog({ vaultPath, defaultFormato, onAdd, onClose }: Add
       titulo: titulo.trim(),
       autor: autor.trim(),
       isbn: isbn.trim() || null,
-      isbn13: null,
       portada: null,
       estado,
       formato,
-      idioma: null,
       editorial: null,
-      etiquetas: [],
       valoracion: estado === "leido" ? valoracion : null,
       favorito: false,
       comprar_fisico: false,
-      relectura: false,
-      progreso: { paginas_totales: null },
+      relectura: estado === "leido" ? relectura : false,
+      paginas_totales: null,
       saga: null,
-      fechas: { añadido: hoy, inicio_lectura: null, fin_lectura: estado === "leido" ? hoy : null },
+      fechas: {
+        añadido: hoy,
+        inicio_lectura: estado === "leyendo" || estado === "leido" ? fechaInicio || null : null,
+        fin_lectura: estado === "leido" ? fechaFin || hoy : null,
+      },
     };
     if (result) {
       nuevo = applyMetadata(nuevo, result);
@@ -142,14 +148,30 @@ export function AddBookDialog({ vaultPath, defaultFormato, onAdd, onClose }: Add
           </label>
         </div>
 
+        {estado === "leyendo" && (
+          <DateField label="Fecha de inicio" value={fechaInicio} onChange={setFechaInicio} />
+        )}
+
         {estado === "leido" && (
-          <label className="dialog-field">
-            <span>
-              <Star size={13} strokeWidth={2} />
-              Valoración
-            </span>
-            <StarRatingField value={valoracion} onChange={setValoracion} />
-          </label>
+          <div className="dialog-row">
+            <DateField label="Fecha de inicio" value={fechaInicio} onChange={setFechaInicio} />
+            <DateField label="Fecha de fin" value={fechaFin} onChange={setFechaFin} />
+          </div>
+        )}
+
+        {estado === "leido" && (
+          <div className="dialog-row-end">
+            <label className="dialog-field">
+              <span>
+                <Star size={13} strokeWidth={2} />
+                Valoración
+              </span>
+              <StarRatingField value={valoracion} onChange={setValoracion} />
+            </label>
+            {!audio && (
+              <ToggleField label="Relectura" checked={relectura} onChange={setRelectura} />
+            )}
+          </div>
         )}
 
         <div className="dialog-actions">
