@@ -63,6 +63,7 @@ export function AddBookDialog({ vaultPath, libraryKind, googleBooksApiKey, onAdd
       comprar_fisico: false,
       relectura: estado === "leido" ? relectura : false,
       paginas_totales: null,
+      duracion_min: null,
       saga: null,
       fechas: {
         añadido: hoy,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Barcode, Building2, Hash, Heart, ImagePlus, Layers, LibraryBig, Sparkles } from "lucide-react";
+import { Barcode, Building2, Clock, Hash, Heart, ImagePlus, Layers, LibraryBig, Sparkles } from "lucide-react";
 import type { Book, FormatoLibro } from "../../../../types/book";
 import { FORMATO_LABEL } from "../../../../types/book";
 import { DetailSection } from "../DetailSection";
@@ -104,6 +104,7 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, onChang
                   ...book,
                   formato: v as FormatoLibro,
                   paginas_totales: v === "audiolibro" ? null : book.paginas_totales,
+                  duracion_min: v === "audiolibro" ? book.duracion_min : null,
                 })
               }
             />
@@ -116,7 +117,20 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, onChang
               onChange={(v) => onChange({ ...book, editorial: v.trim() || null })}
             />
           </div>
-          {book.formato !== "audiolibro" && (
+          {book.formato === "audiolibro" ? (
+            <div className="fact-row">
+              <Clock size={14} strokeWidth={2} />
+              <TextField
+                label="Duración"
+                type="number"
+                value={book.duracion_min != null ? String(book.duracion_min) : ""}
+                onChange={(v) => {
+                  const n = v.trim() === "" ? null : Number(v);
+                  onChange({ ...book, duracion_min: n != null && !Number.isNaN(n) ? n : null });
+                }}
+              />
+            </div>
+          ) : (
             <div className="fact-row">
               <Hash size={14} strokeWidth={2} />
               <TextField
