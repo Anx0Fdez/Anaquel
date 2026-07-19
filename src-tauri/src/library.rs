@@ -70,8 +70,12 @@ pub struct Book {
     /// Marca un libro (no audiolibro) para volver a leerlo en el futuro.
     #[serde(default)]
     pub relectura: bool,
+    /// Solo tiene sentido cuando `formato != Audiolibro`.
     #[serde(default)]
     pub paginas_totales: Option<u32>,
+    /// Solo tiene sentido cuando `formato == Audiolibro`, en minutos.
+    #[serde(default)]
+    pub duracion_min: Option<u32>,
     pub saga: Option<Saga>,
     pub fechas: Fechas,
 }

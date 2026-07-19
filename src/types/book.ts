@@ -31,7 +31,8 @@ export interface Book {
   favorito: boolean;
   comprar_fisico: boolean; // solo relevante si formato=audiolibro y estado=leido
   relectura: boolean; // marcar para volver a leerlo en el futuro
-  paginas_totales: number | null;
+  paginas_totales: number | null; // solo relevante si formato != audiolibro
+  duracion_min: number | null; // solo relevante si formato == audiolibro
   saga: Saga | null;
   fechas: Fechas;
 }
