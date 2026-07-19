@@ -60,6 +60,6 @@ export function applyMetadata(book: Book, meta: BookMetadata): Book {
     autor: isBlank(book.autor) ? (meta.autor ?? book.autor) : book.autor,
     editorial: isBlank(book.editorial) ? meta.editorial : book.editorial,
     portada: isBlank(book.portada) ? meta.portada : book.portada,
-    paginas_totales: book.paginas_totales ?? meta.paginas_totales,
+    paginas_totales: book.formato === "audiolibro" ? null : (book.paginas_totales ?? meta.paginas_totales),
   };
 }
