@@ -21,7 +21,20 @@ export function EstadoSection({ book, onChange }: EstadoSectionProps) {
   const showComprarFisico = audio && book.estado === "leido";
 
   return (
-    <DetailSection title="Estado" icon={ListChecks}>
+    <DetailSection
+      title="Estado"
+      icon={ListChecks}
+      actions={
+        !audio &&
+        book.estado === "leido" && (
+          <ToggleField
+            label="Relectura"
+            checked={book.relectura}
+            onChange={(v) => onChange({ ...book, relectura: v })}
+          />
+        )
+      }
+    >
       <div className="fact-row fact-row--estado detail-field-wide">
         <BookOpen size={14} strokeWidth={2} />
         <SelectField
@@ -30,20 +43,13 @@ export function EstadoSection({ book, onChange }: EstadoSectionProps) {
           options={ESTADO_OPTIONS}
           onChange={(v) => onChange({ ...book, estado: v as EstadoLectura })}
           compact
+          direction="up"
         />
         {showComprarFisico && (
           <ToggleField
             label="Comprar en físico"
             checked={book.comprar_fisico}
             onChange={(v) => onChange({ ...book, comprar_fisico: v })}
-            className="toggle-inline"
-          />
-        )}
-        {!audio && (
-          <ToggleField
-            label="Relectura"
-            checked={book.relectura}
-            onChange={(v) => onChange({ ...book, relectura: v })}
             className="toggle-inline"
           />
         )}

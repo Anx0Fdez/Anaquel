@@ -15,6 +15,7 @@ interface DropdownSelectProps {
   triggerClassName?: string;
   menuClassName?: string;
   align?: "left" | "right";
+  direction?: "down" | "up";
 }
 
 export function DropdownSelect({
@@ -24,6 +25,7 @@ export function DropdownSelect({
   triggerClassName,
   menuClassName,
   align = "left",
+  direction = "down",
 }: DropdownSelectProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -49,7 +51,7 @@ export function DropdownSelect({
       </button>
       {open && (
         <ul
-          className={`dropdown-menu${align === "right" ? " dropdown-menu--right" : ""}${menuClassName ? ` ${menuClassName}` : ""}`}
+          className={`dropdown-menu${align === "right" ? " dropdown-menu--right" : ""}${direction === "up" ? " dropdown-menu--up" : ""}${menuClassName ? ` ${menuClassName}` : ""}`}
           role="listbox"
         >
           {options.map((opt) => (

@@ -109,12 +109,17 @@ export function InfoGeneralSection({ book, vaultPath, onChange }: InfoGeneralSec
               onChange={(v) => onChange({ ...book, editorial: v.trim() || null })}
             />
           </div>
-          <div className="fact-row fact-row--static">
+          <div className="fact-row">
             <Hash size={14} strokeWidth={2} />
-            <div className="field">
-              <span>Páginas</span>
-              <span className="fact-static-value">{book.progreso.paginas_totales ?? "—"}</span>
-            </div>
+            <TextField
+              label="Páginas"
+              type="number"
+              value={book.paginas_totales != null ? String(book.paginas_totales) : ""}
+              onChange={(v) => {
+                const n = v.trim() === "" ? null : Number(v);
+                onChange({ ...book, paginas_totales: n != null && !Number.isNaN(n) ? n : null });
+              }}
+            />
           </div>
           <div className="fact-row-group">
             <div className="fact-row">

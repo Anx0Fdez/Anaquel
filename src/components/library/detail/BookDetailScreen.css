@@ -160,10 +160,6 @@
   margin-top: 4px;
 }
 
-.book-header-main .field-tags {
-  margin-top: 12px;
-}
-
 .book-header-facts {
   flex: 1;
   min-width: 180px;
@@ -246,23 +242,9 @@
   min-width: 0;
 }
 
-.fact-row .field-tags {
-  flex: 1;
-  min-width: 0;
-}
-
 .fact-row-hint {
   margin: 3px 0 0 24px;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-faint);
-}
-
-.fact-static-value {
-  flex: 1;
-  min-width: 0;
-  padding: 4px 6px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
 }

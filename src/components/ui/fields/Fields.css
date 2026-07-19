@@ -57,85 +57,6 @@
   line-height: 1.5;
 }
 
-.field-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 7px;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  background: transparent;
-  transition: background-color 180ms ease-out, border-color 180ms ease-out, box-shadow 180ms ease-out;
-}
-
-.field-tags:hover {
-  background: var(--bg-hover);
-  border-color: var(--border);
-}
-
-.field-tags:focus-within {
-  background: var(--bg-inset);
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--bg-active);
-}
-
-.field-tags--bare {
-  padding: 0;
-}
-
-.field-tags--bare:hover,
-.field-tags--bare:focus-within {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
-.field-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 6px 3px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-hover);
-  color: var(--text);
-  font-size: 12.5px;
-  font-weight: 500;
-}
-
-.field-tag--accent {
-  background: var(--bg-active);
-  color: var(--accent);
-}
-
-.field-tag-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  color: var(--text-faint);
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 50%;
-}
-
-.field-tag-remove:hover {
-  color: var(--text);
-  background: var(--border-strong);
-}
-
-.field-tags-input {
-  flex: 1;
-  min-width: 90px;
-  border: none;
-  background: transparent;
-  outline: none;
-  color: var(--text);
-  font-size: 13.5px;
-  font-weight: 400;
-  padding: 4px 2px;
-}
-
 .field-toggle-row {
   display: flex;
   align-items: center;
@@ -191,11 +112,19 @@
   border-bottom: none;
 }
 
+.detail-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
 .detail-section-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 18px;
+  margin: 0;
   font-family: var(--font-serif);
   font-size: 16px;
   font-weight: 700;
@@ -255,51 +184,6 @@
   font-size: 13px;
 }
 
-
-.related-books-field {
-  position: relative;
-}
-
-.related-books-suggestions {
-  position: absolute;
-  z-index: 5;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  margin: 0;
-  padding: 6px;
-  list-style: none;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
-  background: var(--bg-elevated);
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.related-books-suggestions li button {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  width: 100%;
-  padding: 7px 9px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-}
-
-.related-books-suggestions li button:hover {
-  background: var(--bg-hover);
-}
-
-.related-books-suggestions li button span {
-  font-weight: 400;
-  color: var(--text-muted);
-}
 
 .star-rating {
   display: flex;
