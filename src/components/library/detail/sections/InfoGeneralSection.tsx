@@ -36,7 +36,7 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, onChang
     const file = await pickCoverFile();
     if (!file) return;
     try {
-      const portada = await setManualCover(vaultPath, book.id, file);
+      const portada = await setManualCover(vaultPath, book.id, file, book.portada);
       invalidateCoverCache(vaultPath, portada);
       onChange({ ...book, portada });
     } catch {
