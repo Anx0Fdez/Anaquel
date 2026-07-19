@@ -24,7 +24,7 @@ const VIEW_MODES: { mode: ViewMode; icon: typeof LayoutGrid; label: string }[] =
   { mode: "table", icon: Table2, label: "Vista de tabla" },
 ];
 
-const SORT_KEYS: SortKey[] = ["titulo", "saga", "valoracion", "estado", "favoritos"];
+const SORT_KEYS: SortKey[] = ["titulo", "autor", "saga", "valoracion", "estado", "favoritos"];
 const SORT_OPTIONS = SORT_KEYS.map((key) => ({ value: key, label: SORT_LABEL[key] }));
 
 const CARD_SIZES: { size: GridCardSize; icon: typeof Square }[] = [

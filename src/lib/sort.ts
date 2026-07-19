@@ -1,9 +1,10 @@
 import type { Book, EstadoLectura } from "../types/book";
 
-export type SortKey = "titulo" | "saga" | "valoracion" | "estado" | "favoritos";
+export type SortKey = "titulo" | "autor" | "saga" | "valoracion" | "estado" | "favoritos";
 
 export const SORT_LABEL: Record<SortKey, string> = {
   titulo: "Alfabético",
+  autor: "Autor",
   saga: "Colección / saga",
   valoracion: "Puntuación",
   estado: "Estado",
@@ -21,6 +22,9 @@ export function sortBooks(books: Book[], key: SortKey): Book[] {
   switch (key) {
     case "titulo":
       copy.sort(byTitulo);
+      break;
+    case "autor":
+      copy.sort((a, b) => a.autor.localeCompare(b.autor, "es") || byTitulo(a, b));
       break;
     case "saga":
       copy.sort((a, b) => {
