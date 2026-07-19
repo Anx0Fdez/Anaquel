@@ -39,13 +39,8 @@ export function applyMetadata(book: Book, meta: BookMetadata): Book {
     ...book,
     titulo: isBlank(book.titulo) ? (meta.titulo ?? book.titulo) : book.titulo,
     autor: isBlank(book.autor) ? (meta.autor ?? book.autor) : book.autor,
-    isbn13: isBlank(book.isbn13) ? meta.isbn13 : book.isbn13,
     editorial: isBlank(book.editorial) ? meta.editorial : book.editorial,
-    idioma: isBlank(book.idioma) ? meta.idioma : book.idioma,
     portada: isBlank(book.portada) ? meta.portada : book.portada,
-    progreso:
-      meta.paginas_totales != null && book.progreso.paginas_totales == null
-        ? { ...book.progreso, paginas_totales: meta.paginas_totales }
-        : book.progreso,
+    paginas_totales: book.paginas_totales ?? meta.paginas_totales,
   };
 }
