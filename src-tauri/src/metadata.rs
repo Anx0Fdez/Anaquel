@@ -294,12 +294,37 @@ pub async fn lookup_isbn(
     Ok(Some(meta))
 }
 
+/// Borra una portada antigua dentro de `.ananquel/covers/`, si existe y
+/// sigue siendo un descendiente seguro de esa carpeta (misma comprobación
+/// que `read_cover_image`, ya que `portada` viene de datos editables a
+/// mano). Best-effort: un fallo al borrar nunca debe tirar la subida de la
+/// portada nueva, así que los errores se ignoran en silencio.
+fn delete_old_cover(vault_path: &str, portada: &str) {
+    let ananquel_dir = Path::new(vault_path).join(".ananquel");
+    let covers_dir = ananquel_dir.join("covers");
+    let candidate = ananquel_dir.join(portada);
+
+    let (Ok(covers_dir), Ok(candidate)) = (covers_dir.canonicalize(), candidate.canonicalize()) else {
+        return;
+    };
+    if candidate.starts_with(&covers_dir) {
+        let _ = std::fs::remove_file(candidate);
+    }
+}
+
 /// Copia una imagen elegida a mano por el usuario a `.ananquel/covers/`,
 /// nombrada por `book_id` (no por ISBN: un libro sin ISBN también puede
 /// tener portada manual). Solo acepta las mismas extensiones que ya soporta
-/// el resto de la app; cualquier otra se rechaza con un error legible.
+/// el resto de la app; cualquier otra se rechaza con un error legible. Si el
+/// libro ya tenía una portada distinta (`old_portada`), se borra después de
+/// copiar la nueva, para no dejar archivos huérfanos en `covers/`.
 #[tauri::command]
-pub fn set_manual_cover(vault_path: String, book_id: String, source_path: String) -> Result<String, String> {
+pub fn set_manual_cover(
+    vault_path: String,
+    book_id: String,
+    source_path: String,
+    old_portada: Option<String>,
+) -> Result<String, String> {
     let source = Path::new(&source_path);
     let ext = source
         .extension()
@@ -314,7 +339,15 @@ pub fn set_manual_cover(vault_path: String, book_id: String, source_path: String
     let dest = covers_dir.join(format!("{book_id}.{ext}"));
     std::fs::copy(source, &dest).map_err(|e| e.to_string())?;
 
-    Ok(format!("covers/{book_id}.{ext}"))
+    let new_portada = format!("covers/{book_id}.{ext}");
+
+    if let Some(old) = old_portada {
+        if old != new_portada {
+            delete_old_cover(&vault_path, &old);
+        }
+    }
+
+    Ok(new_portada)
 }
 
 /// Lee una portada ya descargada y la devuelve como `data:` URL en base64,

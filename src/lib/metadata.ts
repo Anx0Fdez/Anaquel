@@ -29,9 +29,19 @@ export async function pickCoverFile(): Promise<string | null> {
   return typeof file === "string" ? file : null;
 }
 
-/** Copia `sourcePath` a `.ananquel/covers/` y devuelve la ruta relativa a guardar en `portada`. */
-export function setManualCover(vaultPath: string, bookId: string, sourcePath: string): Promise<string> {
-  return invoke("set_manual_cover", { vaultPath, bookId, sourcePath });
+/**
+ * Copia `sourcePath` a `.ananquel/covers/` y devuelve la ruta relativa a
+ * guardar en `portada`. Si el libro ya tenía una portada distinta
+ * (`oldPortada`), se borra tras copiar la nueva para no dejar archivos
+ * huérfanos en `covers/`.
+ */
+export function setManualCover(
+  vaultPath: string,
+  bookId: string,
+  sourcePath: string,
+  oldPortada: string | null,
+): Promise<string> {
+  return invoke("set_manual_cover", { vaultPath, bookId, sourcePath, oldPortada });
 }
 
 function isBlank(value: string | null): boolean {
