@@ -1,15 +1,17 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeftRight,
   BookMarked,
   BookOpen,
   CalendarDays,
+  Check,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
   Download,
   Headphones,
   Heart,
+  KeyRound,
   Library,
   Maximize2,
   Moon,
@@ -20,6 +22,7 @@ import type { Book, LibraryKind, Theme } from "../../types/book";
 import type { NavFilter } from "../../state/filters";
 import { filterKey, matchesFilter } from "../../state/filters";
 import { useDismiss } from "../../lib/useDismiss";
+import { validateGoogleBooksApiKey } from "../../lib/metadata";
 import "./Sidebar.css";
 
 interface YearEntry {
@@ -52,6 +55,8 @@ interface SidebarProps {
   exporting: boolean;
   accentColor: string | null;
   onAccentColorChange: (color: string | null) => void;
+  googleBooksApiKey: string | null;
+  onGoogleBooksApiKeyChange: (key: string | null) => void;
   onSaveWindowSize: () => void;
 }
 
@@ -87,6 +92,8 @@ export function Sidebar({
   exporting,
   accentColor,
   onAccentColorChange,
+  googleBooksApiKey,
+  onGoogleBooksApiKeyChange,
   onSaveWindowSize,
 }: SidebarProps) {
   const activeKey = filterKey(activeFilter);
@@ -100,6 +107,29 @@ export function Sidebar({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   useDismiss(settingsOpen, settingsRef, () => setSettingsOpen(false));
+
+  const [apiKeyDraft, setApiKeyDraft] = useState(googleBooksApiKey ?? "");
+  const [apiKeySaved, setApiKeySaved] = useState(false);
+  const [apiKeyCheck, setApiKeyCheck] = useState<"idle" | "valid" | "invalid">("idle");
+  useEffect(() => {
+    setApiKeyDraft(googleBooksApiKey ?? "");
+  }, [googleBooksApiKey]);
+
+  async function handleSaveApiKey(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = apiKeyDraft.trim();
+    onGoogleBooksApiKeyChange(trimmed || null);
+
+    setApiKeySaved(true);
+    window.setTimeout(() => setApiKeySaved(false), 2000);
+
+    if (!trimmed) {
+      setApiKeyCheck("idle");
+      return;
+    }
+    const valid = await validateGoogleBooksApiKey(trimmed).catch(() => false);
+    setApiKeyCheck(valid ? "valid" : "invalid");
+  }
 
   return (
     <aside className="sidebar">
@@ -254,6 +284,22 @@ export function Sidebar({
                   />
                 </label>
               </div>
+              <div className="sidebar-settings-heading">API key de Google Books</div>
+              <form className="sidebar-apikey-row" onSubmit={handleSaveApiKey}>
+                <KeyRound size={13} strokeWidth={2} />
+                <input
+                  className={`sidebar-apikey-input${apiKeyCheck !== "idle" ? ` sidebar-apikey-input--${apiKeyCheck}` : ""}`}
+                  value={apiKeyDraft}
+                  onChange={(e) => {
+                    setApiKeyDraft(e.target.value);
+                    setApiKeyCheck("idle");
+                  }}
+                  placeholder="Pégala aquí…"
+                />
+                <button type="submit" className="sidebar-apikey-save">
+                  {apiKeySaved ? <Check size={13} strokeWidth={2.5} /> : "Guardar"}
+                </button>
+              </form>
             </div>
           )}
         </div>

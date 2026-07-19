@@ -9,6 +9,7 @@ import type { SortKey } from "../../lib/sort";
 interface LibraryListViewProps {
   vaultPath: string;
   libraryKind: LibraryKind;
+  googleBooksApiKey: string | null;
   books: Book[];
   query: string;
   onQueryChange: (query: string) => void;
@@ -27,6 +28,7 @@ interface LibraryListViewProps {
 export function LibraryListView({
   vaultPath,
   libraryKind,
+  googleBooksApiKey,
   books,
   query,
   onQueryChange,
@@ -76,6 +78,7 @@ export function LibraryListView({
         <AddBookDialog
           vaultPath={vaultPath}
           libraryKind={libraryKind}
+          googleBooksApiKey={googleBooksApiKey}
           onClose={() => setDialogOpen(false)}
           onAdd={(book) => {
             onAddBook(book);
