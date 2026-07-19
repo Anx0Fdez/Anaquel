@@ -8,7 +8,6 @@ const ICON: Record<EstadoLectura, React.ComponentType<{ size?: number }>> = {
   pospuesto: PauseCircle,
   leido: CheckCircle2,
   quiero_leer: BookMarked,
-  audiolibro: Headphones,
   abandonado: XCircle,
 };
 

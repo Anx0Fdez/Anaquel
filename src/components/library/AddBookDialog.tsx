@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { BookOpen, Barcode, LibraryBig, ListChecks, Star, User, X } from "lucide-react";
-import type { Book, EstadoLectura, FormatoLibro } from "../../types/book";
-import { FORMATO_LABEL, estadoLabel, estadosDisponibles } from "../../types/book";
+import type { Book, EstadoLectura, FormatoLibro, LibraryKind } from "../../types/book";
+import { ESTADOS_LECTURA, FORMATO_LABEL, estadoLabel } from "../../types/book";
 import { useIsbnLookup } from "../../lib/useIsbnLookup";
 import { applyMetadata } from "../../lib/metadata";
 import { DropdownSelect } from "../ui/fields/DropdownSelect";
@@ -12,27 +12,27 @@ import "../ui/Dialog.css";
 
 interface AddBookDialogProps {
   vaultPath: string;
-  defaultFormato: FormatoLibro;
+  libraryKind: LibraryKind;
   onAdd: (book: Book) => void;
   onClose: () => void;
 }
 
-const FORMATOS: FormatoLibro[] = ["fisico", "ebook", "audiolibro"];
-const FORMATO_OPTIONS = FORMATOS.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
+const FORMATOS_LIBRO: FormatoLibro[] = ["fisico", "ebook"];
+const FORMATO_OPTIONS = FORMATOS_LIBRO.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
 
-export function AddBookDialog({ vaultPath, defaultFormato, onAdd, onClose }: AddBookDialogProps) {
+export function AddBookDialog({ vaultPath, libraryKind, onAdd, onClose }: AddBookDialogProps) {
+  const audio = libraryKind === "audiolibros";
   const [isbn, setIsbn] = useState("");
   const [titulo, setTitulo] = useState("");
   const [autor, setAutor] = useState("");
   const [estado, setEstado] = useState<EstadoLectura>("quiero_leer");
-  const [formato, setFormato] = useState<FormatoLibro>(defaultFormato);
+  const [formato, setFormato] = useState<FormatoLibro>(audio ? "audiolibro" : "fisico");
   const [valoracion, setValoracion] = useState<number | null>(null);
   const [relectura, setRelectura] = useState(false);
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
 
-  const audio = formato === "audiolibro";
-  const ESTADO_OPTIONS = estadosDisponibles(audio, estado).map((s) => ({ value: s, label: estadoLabel(s, audio) }));
+  const ESTADO_OPTIONS = ESTADOS_LECTURA.map((s) => ({ value: s, label: estadoLabel(s, audio) }));
 
   const { status, result } = useIsbnLookup(vaultPath, isbn);
 
@@ -83,7 +83,7 @@ export function AddBookDialog({ vaultPath, defaultFormato, onAdd, onClose }: Add
         onSubmit={handleSubmit}
       >
         <div className="dialog-header">
-          <h2>Añadir libro</h2>
+          <h2>{audio ? "Añadir audiolibro" : "Añadir libro"}</h2>
           <button type="button" className="dialog-close" onClick={onClose} aria-label="Cerrar">
             <X size={16} />
           </button>
@@ -120,7 +120,7 @@ export function AddBookDialog({ vaultPath, defaultFormato, onAdd, onClose }: Add
           <input value={autor} onChange={(e) => setAutor(e.target.value)} required />
         </label>
 
-        <div className="dialog-row">
+        <div className={audio ? undefined : "dialog-row"}>
           <label className="dialog-field">
             <span>
               <ListChecks size={13} strokeWidth={2} />
@@ -134,18 +134,20 @@ export function AddBookDialog({ vaultPath, defaultFormato, onAdd, onClose }: Add
             />
           </label>
 
-          <label className="dialog-field">
-            <span>
-              <LibraryBig size={13} strokeWidth={2} />
-              Formato
-            </span>
-            <DropdownSelect
-              value={formato}
-              options={FORMATO_OPTIONS}
-              onChange={(v) => setFormato(v as FormatoLibro)}
-              triggerClassName="dialog-select-trigger"
-            />
-          </label>
+          {!audio && (
+            <label className="dialog-field">
+              <span>
+                <LibraryBig size={13} strokeWidth={2} />
+                Formato
+              </span>
+              <DropdownSelect
+                value={formato}
+                options={FORMATO_OPTIONS}
+                onChange={(v) => setFormato(v as FormatoLibro)}
+                triggerClassName="dialog-select-trigger"
+              />
+            </label>
+          )}
         </div>
 
         {estado === "leyendo" && (

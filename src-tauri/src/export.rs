@@ -29,7 +29,6 @@ fn estado_label(estado: &EstadoLectura) -> &'static str {
         EstadoLectura::Pospuesto => "Pospuesto",
         EstadoLectura::Leido => "Leído",
         EstadoLectura::Abandonado => "Abandonado",
-        EstadoLectura::Audiolibro => "Audiolibro",
     }
 }
 

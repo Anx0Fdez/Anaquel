@@ -14,11 +14,16 @@ const AUDIOBOOKS_FILE_LEGACY: &str = "audiobooks.json";
 #[serde(rename_all = "snake_case")]
 pub enum EstadoLectura {
     QuieroLeer,
-    Leyendo,
     Pospuesto,
     Leido,
     Abandonado,
-    Audiolibro,
+    /// `#[serde(other)]` hace de red de seguridad al leer un vault antiguo:
+    /// el estado "audiolibro" (el filtro rápido de "lo que estoy escuchando
+    /// ahora", de antes de separar Libros/Audiolibros en dos bibliotecas) ya
+    /// no es un estado válido, así que cualquier valor que no reconozcamos
+    /// cae aquí en vez de que falle la carga de toda la biblioteca.
+    #[serde(other)]
+    Leyendo,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

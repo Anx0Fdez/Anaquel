@@ -2,13 +2,7 @@
 // Los nombres de campo coinciden 1:1 con las claves del library.json del vault para que
 // la (de)serialización entre Rust y el frontend no necesite un mapeo aparte.
 
-export type EstadoLectura =
-  | "quiero_leer"
-  | "leyendo"
-  | "pospuesto"
-  | "leido"
-  | "abandonado"
-  | "audiolibro";
+export type EstadoLectura = "quiero_leer" | "leyendo" | "pospuesto" | "leido" | "abandonado";
 
 export type FormatoLibro = "fisico" | "ebook" | "audiolibro";
 
@@ -62,7 +56,6 @@ export const ESTADO_LABEL: Record<EstadoLectura, string> = {
   pospuesto: "Pospuesto",
   leido: "Leído",
   abandonado: "Abandonado",
-  audiolibro: "Audiolibro",
 };
 
 const ESTADO_LABEL_AUDIO: Partial<Record<EstadoLectura, string>> = {
@@ -77,18 +70,7 @@ export function estadoLabel(estado: EstadoLectura, audio: boolean): string {
   return (audio && ESTADO_LABEL_AUDIO[estado]) || ESTADO_LABEL[estado];
 }
 
-/**
- * Estados seleccionables para un libro. El valor "audiolibro" era, antes de
- * separar Libros/Audiolibros en dos bibliotecas, el filtro rápido de "lo que
- * estoy escuchando ahora" — dentro de la biblioteca de audiolibros ya es
- * redundante con "Escuchando", así que se oculta como opción nueva (pero se
- * respeta si un libro ya lo tenía guardado, para no tocar datos existentes).
- */
-export function estadosDisponibles(audio: boolean, current?: EstadoLectura): EstadoLectura[] {
-  const all: EstadoLectura[] = ["quiero_leer", "leyendo", "pospuesto", "leido", "audiolibro", "abandonado"];
-  if (!audio) return all;
-  return all.filter((e) => e !== "audiolibro" || current === "audiolibro");
-}
+export const ESTADOS_LECTURA: EstadoLectura[] = ["quiero_leer", "leyendo", "pospuesto", "leido", "abandonado"];
 
 export const FORMATO_LABEL: Record<FormatoLibro, string> = {
   fisico: "Físico",
