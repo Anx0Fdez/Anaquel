@@ -173,6 +173,13 @@
   gap: 12px;
 }
 
+.dialog-row-end {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;

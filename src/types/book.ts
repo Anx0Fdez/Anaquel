@@ -12,10 +12,6 @@ export type EstadoLectura =
 
 export type FormatoLibro = "fisico" | "ebook" | "audiolibro";
 
-export interface Progreso {
-  paginas_totales: number | null;
-}
-
 export interface Saga {
   nombre: string;
   numero: number;
@@ -33,18 +29,15 @@ export interface Book {
   titulo: string;
   autor: string;
   isbn: string | null;
-  isbn13: string | null;
   portada: string | null; // ruta relativa a .ananquel/covers/
   estado: EstadoLectura;
   formato: FormatoLibro;
-  idioma: string | null;
   editorial: string | null;
-  etiquetas: string[];
   valoracion: number | null; // 0-10, en pasos de 0.5
   favorito: boolean;
   comprar_fisico: boolean; // solo relevante si formato=audiolibro y estado=leido
   relectura: boolean; // marcar para volver a leerlo en el futuro
-  progreso: Progreso;
+  paginas_totales: number | null;
   saga: Saga | null;
   fechas: Fechas;
 }

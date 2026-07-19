@@ -7,9 +7,10 @@ interface SelectFieldProps {
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
   compact?: boolean;
+  direction?: "down" | "up";
 }
 
-export function SelectField({ label, value, options, onChange, compact }: SelectFieldProps) {
+export function SelectField({ label, value, options, onChange, compact, direction }: SelectFieldProps) {
   return (
     <label className="field">
       <span>{label}</span>
@@ -18,6 +19,7 @@ export function SelectField({ label, value, options, onChange, compact }: Select
         options={options}
         onChange={onChange}
         triggerClassName={`field-select${compact ? " field-select--compact" : ""}`}
+        direction={direction}
       />
     </label>
   );

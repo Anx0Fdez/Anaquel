@@ -67,7 +67,7 @@ function sortValue(book: Book, key: SortKey): string | number {
     case "editorial":
       return book.editorial?.toLowerCase() ?? "";
     case "paginas":
-      return book.progreso.paginas_totales ?? -1;
+      return book.paginas_totales ?? -1;
     case "inicio_lectura":
       return book.fechas.inicio_lectura ?? "";
     case "fin_lectura":
@@ -161,7 +161,7 @@ export function TableView({ books, onSelect, onBackgroundClick }: TableViewProps
                 <td className="table-cell table-cell--muted">{FORMATO_LABEL[book.formato]}</td>
                 <td className="table-cell table-cell--muted">{book.editorial ?? "—"}</td>
                 <td className="table-cell table-cell--muted">
-                  {book.progreso.paginas_totales ?? "—"}
+                  {book.paginas_totales ?? "—"}
                 </td>
                 <td className="table-cell table-cell--muted">{formatDate(book.fechas.inicio_lectura)}</td>
                 <td className="table-cell table-cell--muted">{formatDate(book.fechas.fin_lectura)}</td>

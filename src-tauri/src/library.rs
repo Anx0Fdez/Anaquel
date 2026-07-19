@@ -29,11 +29,6 @@ pub enum FormatoLibro {
     Audiolibro,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Progreso {
-    pub paginas_totales: Option<u32>,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Saga {
     pub nombre: String,
@@ -55,16 +50,11 @@ pub struct Book {
     pub titulo: String,
     pub autor: String,
     pub isbn: Option<String>,
-    pub isbn13: Option<String>,
     pub portada: Option<String>,
     pub estado: EstadoLectura,
     pub formato: FormatoLibro,
     #[serde(default)]
-    pub idioma: Option<String>,
-    #[serde(default)]
     pub editorial: Option<String>,
-    #[serde(default)]
-    pub etiquetas: Vec<String>,
     pub valoracion: Option<f32>,
     #[serde(default)]
     pub favorito: bool,
@@ -76,7 +66,7 @@ pub struct Book {
     #[serde(default)]
     pub relectura: bool,
     #[serde(default)]
-    pub progreso: Progreso,
+    pub paginas_totales: Option<u32>,
     pub saga: Option<Saga>,
     pub fechas: Fechas,
 }

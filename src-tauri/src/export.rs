@@ -78,7 +78,7 @@ fn write_sheet(workbook: &mut Workbook, name: &str, books: &[Book], cancelled: &
         sheet
             .write_string(row, 5, book.editorial.as_deref().unwrap_or(""))
             .map_err(|e| e.to_string())?;
-        if let Some(p) = book.progreso.paginas_totales {
+        if let Some(p) = book.paginas_totales {
             sheet.write_number(row, 6, p as f64).map_err(|e| e.to_string())?;
         }
         if let Some(v) = book.valoracion {

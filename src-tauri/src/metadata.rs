@@ -11,8 +11,6 @@ pub struct BookMetadata {
     pub autor: Option<String>,
     pub editorial: Option<String>,
     pub paginas_totales: Option<u32>,
-    pub idioma: Option<String>,
-    pub isbn13: Option<String>,
     pub portada: Option<String>,
 }
 
@@ -139,8 +137,6 @@ async fn fetch_open_library(client: &reqwest::Client, isbn: &str) -> Option<(Boo
         autor,
         editorial,
         paginas_totales,
-        idioma: None,
-        isbn13: None,
         portada: None,
     };
 
@@ -167,13 +163,6 @@ async fn fetch_google_books(client: &reqwest::Client, isbn: &str) -> Option<(Boo
 
     let editorial = first_str(info, "publisher");
     let paginas_totales = info.get("pageCount").and_then(Value::as_u64).map(|n| n as u32);
-    let idioma = first_str(info, "language");
-
-    let isbn13 = info
-        .get("industryIdentifiers")
-        .and_then(Value::as_array)
-        .and_then(|arr| arr.iter().find(|id| id.get("type").and_then(Value::as_str) == Some("ISBN_13")))
-        .and_then(|id| first_str(id, "identifier"));
 
     let cover_url = info
         .get("imageLinks")
@@ -190,8 +179,6 @@ async fn fetch_google_books(client: &reqwest::Client, isbn: &str) -> Option<(Boo
         autor,
         editorial,
         paginas_totales,
-        idioma,
-        isbn13,
         portada: None,
     };
 

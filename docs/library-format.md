@@ -36,20 +36,15 @@ forma estable aunque se le cambie el título.
     "titulo": "El nombre del viento",
     "autor": "Patrick Rothfuss",
     "isbn": "9788401352836",
-    "isbn13": "9788401352836",
     "portada": "covers/550e8400.jpg",
     "estado": "leyendo",
     "formato": "fisico",
-    "idioma": "es",
     "editorial": "Plaza & Janés",
-    "etiquetas": ["saga", "favorito"],
     "valoracion": 9,
     "favorito": true,
     "comprar_fisico": false,
     "relectura": false,
-    "progreso": {
-      "paginas_totales": 662
-    },
+    "paginas_totales": 662,
     "saga": { "nombre": "Crónica del asesino de reyes", "numero": 1, "total_libros": 3 },
     "fechas": { "añadido": "2026-06-01", "inicio_lectura": "2026-06-20", "fin_lectura": null }
   }
@@ -73,10 +68,9 @@ forma estable aunque se le cambie el título.
   esquema con condicionales.
 - **`relectura`** marca un libro (no audiolibro) para retomarlo en el futuro;
   no depende de ningún otro campo.
-- **`progreso` solo guarda `paginas_totales`**: es el único dato de progreso
-  con UI propia (se muestra en la ficha del libro, en la tabla y en el
-  export), y también lo usan las estadísticas anuales — así no hay dos sitios
-  que puedan desincronizarse.
+- **`paginas_totales`** se muestra en la ficha del libro, es columna
+  ordenable en la tabla y sale en el Excel exportado — un único campo, sin
+  anidar, para que no haya dos sitios que puedan desincronizarse.
 - **`valoracion` va de 0 a 10 en pasos de 0.5** y se edita con un slider, no
   escribiendo el número.
 - **Autocompletado por ISBN**: al escribir un ISBN válido (10 o 13 dígitos) en
