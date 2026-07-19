@@ -1,7 +1,7 @@
 {
   "name": "anaquel",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Catálogo de biblioteca personal de libros y audiolibros",
   "author": "Anx0Fdez",
   "license": "MIT",
