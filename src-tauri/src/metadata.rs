@@ -33,6 +33,55 @@ fn sanitize_isbn(raw: &str) -> Option<String> {
     }
 }
 
+fn digits_only(s: &str) -> Option<Vec<u32>> {
+    s.chars().map(|c| c.to_digit(10)).collect()
+}
+
+/// Dígito de control ISBN-10 (pesos 10..2, mod 11) para los primeros 9
+/// dígitos. El resto 10 se representa como 'X', tal como manda el estándar.
+fn isbn10_check_digit(digits9: &[u32]) -> char {
+    let sum: u32 = digits9.iter().enumerate().map(|(i, d)| d * (10 - i as u32)).sum();
+    match (11 - (sum % 11)) % 11 {
+        10 => 'X',
+        n => std::char::from_digit(n, 10).unwrap_or('0'),
+    }
+}
+
+/// Dígito de control EAN-13 (pesos 1/3 alternos, mod 10) para los primeros
+/// 12 dígitos.
+fn isbn13_check_digit(digits12: &[u32]) -> char {
+    let sum: u32 = digits12
+        .iter()
+        .enumerate()
+        .map(|(i, d)| if i % 2 == 0 { *d } else { d * 3 })
+        .sum();
+    std::char::from_digit((10 - (sum % 10)) % 10, 10).unwrap_or('0')
+}
+
+/// Convierte un ISBN-10 válido a su ISBN-13 equivalente (siempre posible:
+/// se antepone el prefijo "978" y se recalcula el dígito de control).
+fn isbn10_to_isbn13(isbn10: &str) -> Option<String> {
+    if isbn10.len() != 10 {
+        return None;
+    }
+    let first9 = digits_only(&isbn10[..9])?;
+    let prefix: String = first9.iter().map(|d| d.to_string()).collect();
+    let digits12: Vec<u32> = [9, 7, 8].iter().copied().chain(first9).collect();
+    Some(format!("978{prefix}{}", isbn13_check_digit(&digits12)))
+}
+
+/// Convierte un ISBN-13 a su ISBN-10 equivalente, solo posible cuando
+/// empieza por el prefijo "978" (los ISBN-13 con prefijo "979" no tienen
+/// equivalente en ISBN-10).
+fn isbn13_to_isbn10(isbn13: &str) -> Option<String> {
+    if isbn13.len() != 13 || !isbn13.starts_with("978") {
+        return None;
+    }
+    let middle9 = digits_only(&isbn13[3..12])?;
+    let prefix: String = middle9.iter().map(|d| d.to_string()).collect();
+    Some(format!("{prefix}{}", isbn10_check_digit(&middle9)))
+}
+
 fn build_client() -> Result<reqwest::Client, String> {
     reqwest::Client::builder()
         .timeout(Duration::from_secs(8))
@@ -180,21 +229,42 @@ async fn download_cover(client: &reqwest::Client, vault_path: &str, isbn: &str, 
 }
 
 /// Busca metadatos por ISBN: Open Library primero, Google Books como
-/// respaldo. Nunca devuelve `Err` por "no encontrado" o fallo de red —
-/// solo `Ok(None)`, para que un ISBN inexistente o sin conexión sea
-/// completamente silencioso en el frontend.
+/// respaldo. Prueba siempre el ISBN-13 antes que el ISBN-10 — sea cual sea
+/// el que escribió el usuario, se calcula el equivalente en el otro formato
+/// y se intenta también, por si la edición solo está indexada bajo uno de
+/// los dos. Nunca devuelve `Err` por "no encontrado" o fallo de red — solo
+/// `Ok(None)`, para que agotar todos los candidatos sin resultado (o sin
+/// conexión) sea completamente silencioso en el frontend.
 #[tauri::command]
 pub async fn lookup_isbn(path: String, isbn: String) -> Result<Option<BookMetadata>, String> {
     let Some(clean_isbn) = sanitize_isbn(&isbn) else {
         return Ok(None);
     };
 
+    let candidates: Vec<String> = if clean_isbn.len() == 13 {
+        [Some(clean_isbn.clone()), isbn13_to_isbn10(&clean_isbn)]
+            .into_iter()
+            .flatten()
+            .collect()
+    } else {
+        [isbn10_to_isbn13(&clean_isbn), Some(clean_isbn.clone())]
+            .into_iter()
+            .flatten()
+            .collect()
+    };
+
     let client = build_client()?;
 
-    let found = match fetch_open_library(&client, &clean_isbn).await {
-        Some(result) => Some(result),
-        None => fetch_google_books(&client, &clean_isbn).await,
-    };
+    let mut found = None;
+    for candidate in &candidates {
+        found = match fetch_open_library(&client, candidate).await {
+            Some(result) => Some(result),
+            None => fetch_google_books(&client, candidate).await,
+        };
+        if found.is_some() {
+            break;
+        }
+    }
 
     let Some((mut meta, cover_url)) = found else {
         return Ok(None);
