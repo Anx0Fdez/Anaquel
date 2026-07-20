@@ -4,7 +4,7 @@
 
 export type EstadoLectura = "quiero_leer" | "leyendo" | "pospuesto" | "leido" | "abandonado";
 
-export type FormatoLibro = "fisico" | "ebook" | "audiolibro";
+export type FormatoLibro = "fisico" | "ebook" | "comprar" | "audiolibro";
 
 export interface Saga {
   nombre: string;
@@ -76,5 +76,6 @@ export const ESTADOS_LECTURA: EstadoLectura[] = ["quiero_leer", "leyendo", "posp
 export const FORMATO_LABEL: Record<FormatoLibro, string> = {
   fisico: "Físico",
   ebook: "Ebook",
+  comprar: "Comprar",
   audiolibro: "Audiolibro",
 };

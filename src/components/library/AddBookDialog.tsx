@@ -18,7 +18,7 @@ interface AddBookDialogProps {
   onClose: () => void;
 }
 
-const FORMATOS_LIBRO: FormatoLibro[] = ["fisico", "ebook"];
+const FORMATOS_LIBRO: FormatoLibro[] = ["fisico", "ebook", "comprar"];
 const FORMATO_OPTIONS = FORMATOS_LIBRO.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
 
 export function AddBookDialog({ vaultPath, libraryKind, googleBooksApiKey, onAdd, onClose }: AddBookDialogProps) {
