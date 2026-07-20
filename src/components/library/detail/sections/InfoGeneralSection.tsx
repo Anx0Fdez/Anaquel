@@ -18,7 +18,7 @@ interface InfoGeneralSectionProps {
   onChange: (book: Book) => void;
 }
 
-const FORMATOS: FormatoLibro[] = ["fisico", "ebook", "audiolibro"];
+const FORMATOS: FormatoLibro[] = ["fisico", "ebook", "comprar", "audiolibro"];
 const FORMATO_OPTIONS = FORMATOS.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
 
 export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, onChange }: InfoGeneralSectionProps) {

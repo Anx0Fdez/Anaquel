@@ -36,6 +36,7 @@ fn formato_label(formato: &FormatoLibro) -> &'static str {
     match formato {
         FormatoLibro::Fisico => "Físico",
         FormatoLibro::Ebook => "Ebook",
+        FormatoLibro::Comprar => "Comprar",
         FormatoLibro::Audiolibro => "Audiolibro",
     }
 }

@@ -31,6 +31,7 @@ pub enum EstadoLectura {
 pub enum FormatoLibro {
     Fisico,
     Ebook,
+    Comprar,
     Audiolibro,
 }
 
