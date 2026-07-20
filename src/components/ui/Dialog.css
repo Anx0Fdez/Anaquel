@@ -160,6 +160,13 @@
   color: var(--text-muted);
 }
 
+.dialog-hint--warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--status-quiero_leer);
+}
+
 .dialog-error {
   margin: -4px 0 0;
   font-size: 12.5px;

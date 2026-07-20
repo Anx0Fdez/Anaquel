@@ -297,6 +297,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
               libraryKind={libraryKind}
               googleBooksApiKey={googleBooksApiKey}
               books={visibleBooks}
+              allBooks={books}
               query={query}
               onQueryChange={setQuery}
               viewMode={viewMode}

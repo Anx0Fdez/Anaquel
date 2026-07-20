@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import { BookOpen, Barcode, LibraryBig, ListChecks, Star, User, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, BookOpen, Barcode, LibraryBig, ListChecks, Star, User, X } from "lucide-react";
 import type { Book, EstadoLectura, FormatoLibro, LibraryKind } from "../../types/book";
 import { ESTADOS_LECTURA, FORMATO_LABEL, estadoLabel } from "../../types/book";
 import { useIsbnLookup } from "../../lib/useIsbnLookup";
 import { applyMetadata } from "../../lib/metadata";
+import { findDuplicate } from "../../lib/duplicates";
 import { DropdownSelect } from "../ui/fields/DropdownSelect";
 import { StarRatingField } from "../ui/fields/StarRatingField";
 import { ToggleField } from "../ui/fields/ToggleField";
@@ -14,6 +15,7 @@ interface AddBookDialogProps {
   vaultPath: string;
   libraryKind: LibraryKind;
   googleBooksApiKey: string | null;
+  existingBooks: Book[];
   onAdd: (book: Book) => void;
   onClose: () => void;
 }
@@ -21,7 +23,14 @@ interface AddBookDialogProps {
 const FORMATOS_LIBRO: FormatoLibro[] = ["fisico", "ebook", "comprar"];
 const FORMATO_OPTIONS = FORMATOS_LIBRO.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
 
-export function AddBookDialog({ vaultPath, libraryKind, googleBooksApiKey, onAdd, onClose }: AddBookDialogProps) {
+export function AddBookDialog({
+  vaultPath,
+  libraryKind,
+  googleBooksApiKey,
+  existingBooks,
+  onAdd,
+  onClose,
+}: AddBookDialogProps) {
   const audio = libraryKind === "audiolibros";
   const [isbn, setIsbn] = useState("");
   const [titulo, setTitulo] = useState("");
@@ -36,6 +45,11 @@ export function AddBookDialog({ vaultPath, libraryKind, googleBooksApiKey, onAdd
   const ESTADO_OPTIONS = ESTADOS_LECTURA.map((s) => ({ value: s, label: estadoLabel(s, audio) }));
 
   const { status, result } = useIsbnLookup(vaultPath, isbn, googleBooksApiKey);
+
+  const duplicate = useMemo(
+    () => findDuplicate(existingBooks, { isbn, titulo, autor }),
+    [existingBooks, isbn, titulo, autor],
+  );
 
   useEffect(() => {
     if (!result) return;
@@ -151,6 +165,15 @@ export function AddBookDialog({ vaultPath, libraryKind, googleBooksApiKey, onAdd
             </label>
           )}
         </div>
+
+        {duplicate && (
+          <p className="dialog-hint dialog-hint--warning">
+            <AlertTriangle size={13} strokeWidth={2} />
+            {duplicate.reason === "isbn"
+              ? `Ya tienes "${duplicate.book.titulo}" en la biblioteca con este mismo ISBN.`
+              : `Ya tienes "${duplicate.book.titulo}" de ${duplicate.book.autor} en la biblioteca.`}
+          </p>
+        )}
 
         {estado === "leyendo" && (
           <DateField label="Fecha de inicio" value={fechaInicio} onChange={setFechaInicio} />
