@@ -56,7 +56,7 @@ export function GridView({
                     {book.valoracion}
                   </span>
                 )}
-                {book.relectura && (
+                {book.formato !== "audiolibro" && book.relectura && (
                   <span className="book-spine-badge" title="Marcado para relectura">
                     <RotateCcw size={12} strokeWidth={2} />
                   </span>

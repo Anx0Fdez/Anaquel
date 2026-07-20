@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Heart, RotateCcw } from "lucide-react";
-import type { Book } from "../../types/book";
+import type { Book, LibraryKind } from "../../types/book";
 import { FORMATO_LABEL } from "../../types/book";
 import { StatusPill } from "./StatusPill";
 import "./TableView.css";
@@ -77,19 +77,23 @@ function sortValue(book: Book, key: SortKey): string | number {
 
 interface TableViewProps {
   books: Book[];
+  libraryKind: LibraryKind;
   onSelect?: (book: Book) => void;
   onBackgroundClick?: () => void;
 }
 
-export function TableView({ books, onSelect, onBackgroundClick }: TableViewProps) {
+export function TableView({ books, libraryKind, onSelect, onBackgroundClick }: TableViewProps) {
+  const audio = libraryKind === "audiolibros";
+  const columns = audio ? COLUMNS.filter((c) => c.key !== "relectura") : COLUMNS;
   const [sortKey, setSortKey] = useState<SortKey>("titulo");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const effectiveSortKey = audio && sortKey === "relectura" ? "titulo" : sortKey;
 
   const sorted = useMemo(() => {
     const copy = [...books];
     copy.sort((a, b) => {
-      const va = sortValue(a, sortKey);
-      const vb = sortValue(b, sortKey);
+      const va = sortValue(a, effectiveSortKey);
+      const vb = sortValue(b, effectiveSortKey);
       const cmp =
         typeof va === "number" && typeof vb === "number"
           ? va - vb
@@ -97,7 +101,7 @@ export function TableView({ books, onSelect, onBackgroundClick }: TableViewProps
       return sortDir === "asc" ? cmp : -cmp;
     });
     return copy;
-  }, [books, sortKey, sortDir]);
+  }, [books, effectiveSortKey, sortDir]);
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
@@ -118,20 +122,20 @@ export function TableView({ books, onSelect, onBackgroundClick }: TableViewProps
       <div className="table-view-card">
         <table>
           <colgroup>
-            {COLUMNS.map((col) => (
+            {columns.map((col) => (
               <col key={col.key} style={{ width: col.width }} />
             ))}
           </colgroup>
           <thead>
             <tr>
-              {COLUMNS.map((col) => (
+              {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`table-col-field${sortKey === col.key ? " table-col-field--active" : ""}${col.align === "center" ? " table-col-field--center" : ""}`}
+                  className={`table-col-field${effectiveSortKey === col.key ? " table-col-field--active" : ""}${col.align === "center" ? " table-col-field--center" : ""}`}
                   onClick={() => toggleSort(col.key)}
                 >
                   {col.label}
-                  {sortKey === col.key && (
+                  {effectiveSortKey === col.key && (
                     <span className="table-sort-arrow">{sortDir === "asc" ? "▲" : "▼"}</span>
                   )}
                 </th>
@@ -155,9 +159,11 @@ export function TableView({ books, onSelect, onBackgroundClick }: TableViewProps
                 <td className="table-cell table-cell--center">
                   {book.favorito && <Heart size={14} fill="var(--accent)" color="var(--accent)" />}
                 </td>
-                <td className="table-cell table-cell--center">
-                  {book.relectura && <RotateCcw size={14} color="var(--accent)" />}
-                </td>
+                {!audio && (
+                  <td className="table-cell table-cell--center">
+                    {book.relectura && <RotateCcw size={14} color="var(--accent)" />}
+                  </td>
+                )}
                 <td className="table-cell table-cell--muted">{FORMATO_LABEL[book.formato]}</td>
                 <td className="table-cell table-cell--muted">{book.editorial ?? "—"}</td>
                 <td className="table-cell table-cell--muted">
