@@ -61,7 +61,7 @@ export function LibraryListView({
       />
 
       {viewMode === "table" && (
-        <TableView books={books} onSelect={onSelectBook} onBackgroundClick={onBackgroundClick} />
+        <TableView books={books} libraryKind={libraryKind} onSelect={onSelectBook} onBackgroundClick={onBackgroundClick} />
       )}
       {viewMode === "grid" && (
         <GridView

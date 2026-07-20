@@ -40,19 +40,33 @@ fn formato_label(formato: &FormatoLibro) -> &'static str {
     }
 }
 
-const HEADERS: [&str; 13] = [
-    "Título", "Autor", "Saga", "Estado", "Formato", "Editorial", "Páginas", "Valoración",
-    "Favorito", "Relectura", "Inicio lectura", "Fin lectura", "ISBN",
-];
-
 const CANCELLED: &str = "cancelado";
 
-fn write_sheet(workbook: &mut Workbook, name: &str, books: &[Book], cancelled: &AtomicBool) -> Result<(), String> {
+/// "Relectura" no aplica a audiolibros (la app ya no deja marcarla ahí), así
+/// que la hoja de Audiolibros se genera sin esa columna.
+fn headers_for(audio: bool) -> Vec<&'static str> {
+    let mut headers = vec!["Título", "Autor", "Saga", "Estado", "Formato", "Editorial", "Páginas", "Valoración", "Favorito"];
+    if !audio {
+        headers.push("Relectura");
+    }
+    headers.push("Inicio lectura");
+    headers.push("Fin lectura");
+    headers.push("ISBN");
+    headers
+}
+
+fn write_sheet(
+    workbook: &mut Workbook,
+    name: &str,
+    books: &[Book],
+    audio: bool,
+    cancelled: &AtomicBool,
+) -> Result<(), String> {
     let sheet = workbook.add_worksheet();
     sheet.set_name(name).map_err(|e| e.to_string())?;
 
     let header_format = Format::new().set_bold();
-    for (col, h) in HEADERS.iter().enumerate() {
+    for (col, h) in headers_for(audio).iter().enumerate() {
         sheet
             .write_string_with_format(0, col as u16, *h, &header_format)
             .map_err(|e| e.to_string())?;
@@ -69,34 +83,49 @@ fn write_sheet(workbook: &mut Workbook, name: &str, books: &[Book], cancelled: &
             .map(|s| format!("{} #{}", s.nombre, s.numero))
             .unwrap_or_default();
 
-        sheet.write_string(row, 0, &book.titulo).map_err(|e| e.to_string())?;
-        sheet.write_string(row, 1, &book.autor).map_err(|e| e.to_string())?;
-        sheet.write_string(row, 2, &saga).map_err(|e| e.to_string())?;
-        sheet.write_string(row, 3, estado_label(&book.estado)).map_err(|e| e.to_string())?;
-        sheet.write_string(row, 4, formato_label(&book.formato)).map_err(|e| e.to_string())?;
+        let mut col: u16 = 0;
+        sheet.write_string(row, col, &book.titulo).map_err(|e| e.to_string())?;
+        col += 1;
+        sheet.write_string(row, col, &book.autor).map_err(|e| e.to_string())?;
+        col += 1;
+        sheet.write_string(row, col, &saga).map_err(|e| e.to_string())?;
+        col += 1;
+        sheet.write_string(row, col, estado_label(&book.estado)).map_err(|e| e.to_string())?;
+        col += 1;
+        sheet.write_string(row, col, formato_label(&book.formato)).map_err(|e| e.to_string())?;
+        col += 1;
         sheet
-            .write_string(row, 5, book.editorial.as_deref().unwrap_or(""))
+            .write_string(row, col, book.editorial.as_deref().unwrap_or(""))
             .map_err(|e| e.to_string())?;
+        col += 1;
         if let Some(p) = book.paginas_totales {
-            sheet.write_number(row, 6, p as f64).map_err(|e| e.to_string())?;
+            sheet.write_number(row, col, p as f64).map_err(|e| e.to_string())?;
         }
+        col += 1;
         if let Some(v) = book.valoracion {
-            sheet.write_number(row, 7, v as f64).map_err(|e| e.to_string())?;
+            sheet.write_number(row, col, v as f64).map_err(|e| e.to_string())?;
+        }
+        col += 1;
+        sheet
+            .write_string(row, col, if book.favorito { "Sí" } else { "No" })
+            .map_err(|e| e.to_string())?;
+        col += 1;
+        if !audio {
+            sheet
+                .write_string(row, col, if book.relectura { "Sí" } else { "No" })
+                .map_err(|e| e.to_string())?;
+            col += 1;
         }
         sheet
-            .write_string(row, 8, if book.favorito { "Sí" } else { "No" })
+            .write_string(row, col, book.fechas.inicio_lectura.as_deref().unwrap_or(""))
             .map_err(|e| e.to_string())?;
+        col += 1;
         sheet
-            .write_string(row, 9, if book.relectura { "Sí" } else { "No" })
+            .write_string(row, col, book.fechas.fin_lectura.as_deref().unwrap_or(""))
             .map_err(|e| e.to_string())?;
+        col += 1;
         sheet
-            .write_string(row, 10, book.fechas.inicio_lectura.as_deref().unwrap_or(""))
-            .map_err(|e| e.to_string())?;
-        sheet
-            .write_string(row, 11, book.fechas.fin_lectura.as_deref().unwrap_or(""))
-            .map_err(|e| e.to_string())?;
-        sheet
-            .write_string(row, 12, book.isbn.as_deref().unwrap_or(""))
+            .write_string(row, col, book.isbn.as_deref().unwrap_or(""))
             .map_err(|e| e.to_string())?;
     }
 
@@ -122,8 +151,8 @@ pub fn export_library(
         books.into_iter().partition(|b| b.formato == FormatoLibro::Audiolibro);
 
     let mut workbook = Workbook::new();
-    write_sheet(&mut workbook, "Libros", &libros, cancelled)?;
-    write_sheet(&mut workbook, "Audiolibros", &audiolibros, cancelled)?;
+    write_sheet(&mut workbook, "Libros", &libros, false, cancelled)?;
+    write_sheet(&mut workbook, "Audiolibros", &audiolibros, true, cancelled)?;
 
     if cancelled.load(Ordering::SeqCst) {
         return Err(CANCELLED.to_string());
