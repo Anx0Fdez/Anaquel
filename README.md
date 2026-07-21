@@ -134,8 +134,8 @@ Cómo usarla en Anaquel:
 
 ## Roadmap
 
-- [ ] Registro de préstamos (a quién y cuándo)
-- [ ] Colecciones inteligentes (p. ej. "pendientes de relectura")
+- [ ] Colecciones inteligentes (filtros guardados más allá de favoritos/año/estado, p. ej. "pendientes de relectura")
+- [ ] Importar biblioteca desde Goodreads/CSV
 
 ## Contribuir
 
