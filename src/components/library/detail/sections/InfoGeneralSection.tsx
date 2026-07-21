@@ -5,7 +5,7 @@ import { FORMATO_LABEL } from "../../../../types/book";
 import { DetailSection } from "../DetailSection";
 import { TextField } from "../../../ui/fields/TextField";
 import { SelectField } from "../../../ui/fields/SelectField";
-import { SagaAutocompleteField } from "../../../ui/fields/SagaAutocompleteField";
+import { AutocompleteTextField } from "../../../ui/fields/AutocompleteTextField";
 import { BookCoverArt } from "../../BookCoverArt";
 import { StarRatingField } from "../../../ui/fields/StarRatingField";
 import { useIsbnLookup } from "../../../../lib/useIsbnLookup";
@@ -23,6 +23,19 @@ interface InfoGeneralSectionProps {
 const FORMATOS: FormatoLibro[] = ["fisico", "ebook", "comprar", "audiolibro"];
 const FORMATO_OPTIONS = FORMATOS.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
 
+/** Valores distintos (sin contar mayúsculas) de `values`, en orden de primera aparición. */
+function distinctValues(values: (string | null | undefined)[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of values) {
+    const v = raw?.trim();
+    if (!v || seen.has(v.toLowerCase())) continue;
+    seen.add(v.toLowerCase());
+    result.push(v);
+  }
+  return result;
+}
+
 export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBooks, onChange }: InfoGeneralSectionProps) {
   // Vacío a propósito (no `book.isbn`): así abrir un libro que ya tiene ISBN
   // no dispara una búsqueda de fondo cada vez — solo se busca cuando el
@@ -30,19 +43,11 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
   const [isbnDraft, setIsbnDraft] = useState("");
   const { status, result } = useIsbnLookup(vaultPath, isbnDraft, googleBooksApiKey);
 
-  // Nombres de saga ya usados en la biblioteca (deduplicados, orden de
-  // primera aparición), para sugerirlos como autocompletado al escribir.
-  const sagaOptions = useMemo(() => {
-    const seen = new Set<string>();
-    const names: string[] = [];
-    for (const b of allBooks) {
-      const nombre = b.saga?.nombre.trim();
-      if (!nombre || seen.has(nombre.toLowerCase())) continue;
-      seen.add(nombre.toLowerCase());
-      names.push(nombre);
-    }
-    return names;
-  }, [allBooks]);
+  // Valores ya usados en la biblioteca, para sugerirlos como autocompletado
+  // al escribir en los campos de saga, autor y editorial.
+  const sagaOptions = useMemo(() => distinctValues(allBooks.map((b) => b.saga?.nombre)), [allBooks]);
+  const autorOptions = useMemo(() => distinctValues(allBooks.map((b) => b.autor)), [allBooks]);
+  const editorialOptions = useMemo(() => distinctValues(allBooks.map((b) => b.editorial)), [allBooks]);
 
   useEffect(() => {
     if (result) onChange(applyMetadata(book, result));
@@ -95,9 +100,10 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
             hideLabel
             inputClassName="book-header-title-input"
           />
-          <TextField
+          <AutocompleteTextField
             label="Autor"
             value={book.autor}
+            options={autorOptions}
             onChange={(v) => onChange({ ...book, autor: v })}
             hideLabel
             inputClassName="book-header-author-input"
@@ -127,9 +133,10 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
           </div>
           <div className="fact-row">
             <Building2 size={14} strokeWidth={2} />
-            <TextField
+            <AutocompleteTextField
               label="Editorial"
               value={book.editorial ?? ""}
+              options={editorialOptions}
               onChange={(v) => onChange({ ...book, editorial: v.trim() || null })}
             />
           </div>
@@ -176,7 +183,7 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
           <div className="fact-row-group">
             <div className="fact-row">
               <Layers size={14} strokeWidth={2} />
-              <SagaAutocompleteField
+              <AutocompleteTextField
                 label="Colección"
                 value={book.saga?.nombre ?? ""}
                 options={sagaOptions}
