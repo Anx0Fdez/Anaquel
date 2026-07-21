@@ -50,7 +50,7 @@ export function Topbar({
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
         e.preventDefault();
         searchRef.current?.focus();
       }
@@ -69,7 +69,7 @@ export function Topbar({
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder="Buscar por título, autor, ISBN..."
         />
-        <kbd className="topbar-search-kbd">Ctrl+K</kbd>
+        <kbd className="topbar-search-kbd">Ctrl+F</kbd>
       </div>
 
       {viewMode === "grid" && (
