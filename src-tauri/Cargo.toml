@@ -1,6 +1,6 @@
 [package]
 name = "anaquel"
-version = "0.2.0"
+version = "0.3.0"
 description = "Catálogo de biblioteca personal de libros y audiolibros"
 authors = ["Anx0Fdez"]
 edition = "2021"
