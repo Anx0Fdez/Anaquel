@@ -172,7 +172,7 @@ export function Sidebar({
 
       {readingYears.length > 0 && (
         <>
-          <div className="sidebar-heading">Años de lectura</div>
+          <div className="sidebar-heading">{audio ? "Años de escucha" : "Años de lectura"}</div>
           <nav className="sidebar-nav">
             {visibleYears.map(({ year, count }) => {
               const filter: NavFilter = { kind: "year", year };

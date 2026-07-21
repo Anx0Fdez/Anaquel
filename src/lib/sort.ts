@@ -1,6 +1,6 @@
 import type { Book, EstadoLectura } from "../types/book";
 
-export type SortKey = "titulo" | "autor" | "saga" | "valoracion" | "estado" | "favoritos";
+export type SortKey = "titulo" | "autor" | "saga" | "valoracion" | "estado" | "favoritos" | "paginas";
 
 export const SORT_LABEL: Record<SortKey, string> = {
   titulo: "Alfabético",
@@ -9,7 +9,15 @@ export const SORT_LABEL: Record<SortKey, string> = {
   valoracion: "Puntuación",
   estado: "Estado",
   favoritos: "Favoritos",
+  paginas: "Páginas",
 };
+
+/** Como "Páginas" no aplica a audiolibros (usan duración en minutos), la
+ * etiqueta de este criterio se adapta igual que ya hace `estadoLabel`. */
+export function sortLabel(key: SortKey, audio: boolean): string {
+  if (key === "paginas" && audio) return "Duración";
+  return SORT_LABEL[key];
+}
 
 export const ESTADO_ORDER: EstadoLectura[] = ["leyendo", "pospuesto", "quiero_leer", "leido", "abandonado"];
 
@@ -46,6 +54,13 @@ export function sortBooks(books: Book[], key: SortKey): Book[] {
       break;
     case "favoritos":
       copy.sort((a, b) => Number(b.favorito) - Number(a.favorito) || byTitulo(a, b));
+      break;
+    case "paginas":
+      copy.sort((a, b) => {
+        const va = a.formato === "audiolibro" ? (a.duracion_min ?? -1) : (a.paginas_totales ?? -1);
+        const vb = b.formato === "audiolibro" ? (b.duracion_min ?? -1) : (b.paginas_totales ?? -1);
+        return va - vb || byTitulo(a, b);
+      });
       break;
   }
   return copy;
