@@ -11,6 +11,7 @@ interface LibraryListViewProps {
   libraryKind: LibraryKind;
   googleBooksApiKey: string | null;
   books: Book[];
+  allBooks: Book[];
   query: string;
   onQueryChange: (query: string) => void;
   viewMode: ViewMode;
@@ -30,6 +31,7 @@ export function LibraryListView({
   libraryKind,
   googleBooksApiKey,
   books,
+  allBooks,
   query,
   onQueryChange,
   viewMode,
@@ -79,6 +81,7 @@ export function LibraryListView({
           vaultPath={vaultPath}
           libraryKind={libraryKind}
           googleBooksApiKey={googleBooksApiKey}
+          existingBooks={allBooks}
           onClose={() => setDialogOpen(false)}
           onAdd={(book) => {
             onAddBook(book);
