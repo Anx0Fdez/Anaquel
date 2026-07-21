@@ -8,7 +8,7 @@ oculta `.ananquel/` se reserva solo para lo que la app gestiona internamente
 
 ```
 mi-biblioteca/
-├── mybooks.json       # libros físicos y ebooks
+├── mybooks.json       # libros: físicos, ebooks y pendientes de comprar
 ├── myaudiobooks.json  # audiolibros (formato: "audiolibro")
 └── .ananquel/
     ├── config.json    # tema, última vista, orden de anaqueles, tamaño de ventana, color
@@ -45,6 +45,7 @@ forma estable aunque se le cambie el título.
     "comprar_fisico": false,
     "relectura": false,
     "paginas_totales": 662,
+    "duracion_min": null,
     "comentarios": null,
     "saga": { "nombre": "Crónica del asesino de reyes", "numero": 1, "total_libros": 3 },
     "fechas": { "añadido": "2026-06-01", "inicio_lectura": "2026-06-20", "fin_lectura": null }
@@ -56,8 +57,13 @@ forma estable aunque se le cambie el título.
 
 - **Todos los campos son opcionales excepto `id`, `titulo` y `autor`.**
 - **`estado` no depende de `formato`**: un audiolibro puede estar `quiero_leer`
-  antes de empezarlo. `audiolibro` como estado es el filtro rápido de "lo que
-  estoy escuchando ahora mismo" (equivalente a `leyendo` pero para audio).
+  antes de empezarlo. `estado` no tiene un valor propio para audiolibros — usa
+  los mismos cinco valores que un libro, solo que la interfaz les cambia la
+  etiqueta ("Escuchando" en vez de "Leyendo", etc.) vía `estadoLabel()` en
+  `src/types/book.ts`.
+- **`formato: "comprar"`** marca un libro (no audiolibro) que todavía no se
+  tiene, pendiente de comprar — a efectos de esquema es un formato más, sin
+  ningún campo adicional asociado.
 - **Por qué `mybooks.json`/`myaudiobooks.json` y no un `.md` por libro**: es más simple de
   mantener consistente (una sola escritura atómica por cambio) y no necesita un
   índice/caché aparte para que la búsqueda sea instantánea, a costa de que el
@@ -72,6 +78,11 @@ forma estable aunque se le cambie el título.
 - **`paginas_totales`** se muestra en la ficha del libro, es columna
   ordenable en la tabla y sale en el Excel exportado — un único campo, sin
   anidar, para que no haya dos sitios que puedan desincronizarse.
+- **`duracion_min`** es el equivalente a `paginas_totales` para audiolibros
+  (duración en minutos): la ficha muestra uno u otro campo según `formato`,
+  nunca los dos a la vez. Solo se rellena a mano — ni Open Library ni Google
+  Books devuelven duración de audiolibro, así que el autocompletado por ISBN
+  no lo toca.
 - **`valoracion` va de 0 a 10 en pasos de 0.5** y se edita con un slider, no
   escribiendo el número.
 - **`comentarios`** es texto libre sin formato, editado desde una ventana
@@ -79,12 +90,17 @@ forma estable aunque se le cambie el título.
   cuando está vacío.
 - **Autocompletado por ISBN**: al escribir un ISBN válido (10 o 13 dígitos) en
   el diálogo de añadir libro o en la ficha de un libro existente, la app
-  consulta Open Library y, si no encuentra nada, Google Books como respaldo
-  (`src-tauri/src/metadata.rs`), y rellena los campos que estén vacíos —nunca
-  pisa datos que el usuario ya haya escrito. La portada encontrada se
-  descarga y se guarda en `covers/`, nunca como URL externa: si falla la
-  búsqueda o no hay conexión, no pasa nada visible, simplemente no se rellena
-  nada.
+  prueba primero el ISBN-13 (convirtiendo un ISBN-10 al equivalente en 13 si
+  hace falta) y, si no hay resultado, cae al ISBN-10 equivalente antes de
+  darlo por no encontrado — así una edición indexada solo bajo uno de los dos
+  formatos igual se encuentra. Para cada candidato consulta Open Library y,
+  si no encuentra nada, Google Books como respaldo (requiere una API key
+  propia — ver la sección correspondiente en el [README](../README.md)),
+  ambos desde `src-tauri/src/metadata.rs`. Rellena título, autor, editorial,
+  páginas y portada — solo los campos que estén vacíos, nunca pisa datos que
+  el usuario ya haya escrito a mano. La portada encontrada se descarga y se
+  guarda en `covers/`, nunca como URL externa: si falla la búsqueda o no hay
+  conexión, no pasa nada visible, simplemente no se rellena nada.
 - **Multi-vault / multi-dispositivo**: como todo es texto plano, dos vaults se
   sincronizan con cualquier herramienta de archivos (Git, Syncthing, Dropbox...).
   Al abrir la misma carpeta en otro ordenador, `config.json` hace que la app se
