@@ -15,14 +15,20 @@ Anaquel es una aplicación de escritorio (Windows y Linux) para catalogar tu bib
 ## Características principales
 
 - **Anaquel = carpeta.** Cualquier carpeta de tu sistema de archivos puede convertirse en tu biblioteca; los datos se guardan como JSON legible en texto plano.
-- **Libros y audiolibros como dos bibliotecas independientes**, con estados de lectura adaptados a cada una (Leyendo/Escuchando, Quiero leer/Quiero escuchar...).
-- **Autocompletado por ISBN**: busca en Open Library y, si no encuentra nada, en Google Books. Rellena título, autor, editorial, páginas, idioma, sinopsis y portada sin pisar lo que ya hayas escrito a mano.
-- **Portadas**: descargadas automáticamente por ISBN o añadidas a mano desde una imagen local.
-- **Estados de lectura completos**: quiero leer, leyendo, pospuesto, leído, abandonado — con marcas adicionales de relectura y de "comprar en físico" para audiolibros ya escuchados.
-- **Vistas de cuadrícula (tres tamaños) y de tabla**, con orden y filtros por estado, favoritos o año de lectura.
+- **Libros y audiolibros como dos bibliotecas independientes**, con estados de lectura adaptados a cada una (Leyendo/Escuchando, Quiero leer/Quiero escuchar...) y su propio diálogo de "Añadir".
+- **Autocompletado por ISBN**: busca en Open Library y, si no encuentra nada, en Google Books, probando tanto el ISBN-13 como el ISBN-10 de la misma edición. Rellena título, autor, editorial, páginas y portada sin pisar lo que ya hayas escrito a mano.
+- **Autocompletado de Autor, Editorial y Colección/saga**: sugiere, mientras escribes, valores ya usados en el resto de tu biblioteca (navegable con flechas y Enter), sin dejar de admitir texto libre.
+- **Aviso de posibles duplicados**: al añadir un libro, avisa si ya existe uno con el mismo ISBN o un título y autor muy parecidos.
+- **Portadas**: descargadas automáticamente por ISBN o añadidas a mano desde una imagen local (la anterior se borra sola al reemplazarla).
+- **Estados de lectura completos**: quiero leer, leyendo, pospuesto, leído, abandonado — con marcas adicionales de relectura y de "comprar en físico" para audiolibros ya escuchados, y un formato "Comprar" para libros que aún no tienes.
+- **Comentarios libres por libro**, editados desde una ventana flotante propia en la ficha de detalle.
+- **Búsqueda** (`Ctrl+F`) por título, autor o saga, y **ordenación** por título, autor, saga, valoración, estado, favoritos o páginas/duración.
+- **Agrupación automática en secciones** al ordenar por autor, saga o estado, en cuadrícula y en tabla.
+- **Vistas de cuadrícula (tres tamaños) y de tabla**, con filtros por estado, favoritos o año de lectura/escucha.
 - **Exportación a Excel** (`.xlsx`) con libros y audiolibros en hojas separadas.
 - **Tema claro/oscuro y color de acento personalizable**, con selector de fechas y de opciones diseñados a medida en vez de controles nativos genéricos.
 - **Multi-dispositivo sin backend**: el mismo anaquel abierto en otro ordenador recuerda el tema, la vista y el resto de preferencias.
+- **Aviso discreto de nuevas versiones**: comprueba en segundo plano contra los Releases de GitHub y muestra un icono junto al que abrir la página de descarga, sin interrumpir ni forzar nada si no hay conexión.
 
 ## Capturas
 
@@ -88,7 +94,8 @@ Anaquel/
 │       ├── library.rs        # Lectura/escritura de mybooks.json y myaudiobooks.json
 │       ├── vault.rs           # Gestión del anaquel y su config.json
 │       ├── metadata.rs        # Búsqueda por ISBN y portadas
-│       └── export.rs          # Exportación a Excel
+│       ├── export.rs          # Exportación a Excel
+│       └── updater.rs         # Comprobación de nuevas versiones vía GitHub Releases
 └── docs/
     └── library-format.md    # Formato exacto de los archivos del anaquel
 ```
@@ -127,10 +134,8 @@ Cómo usarla en Anaquel:
 
 ## Roadmap
 
-- [ ] Notas y citas por libro
-- [ ] Registro de préstamos (a quién y cuándo)
-- [ ] Colecciones inteligentes (p. ej. "pendientes de relectura")
-- [ ] Aviso discreto de nuevas versiones disponibles en GitHub
+- [ ] Colecciones inteligentes (filtros guardados más allá de favoritos/año/estado, p. ej. "pendientes de relectura")
+- [ ] Importar biblioteca desde Goodreads/CSV
 
 ## Contribuir
 
