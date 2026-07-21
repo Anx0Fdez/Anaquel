@@ -69,6 +69,8 @@ export function LibraryListView({
         <GridView
           vaultPath={vaultPath}
           books={books}
+          libraryKind={libraryKind}
+          sortKey={sortKey}
           cardSize={gridCardSize}
           onSelect={onSelectBook}
           selectedBookId={selectedBookId}

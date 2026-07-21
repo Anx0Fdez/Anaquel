@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Heart, RotateCcw } from "lucide-react";
 import type { Book, LibraryKind } from "../../types/book";
 import { FORMATO_LABEL } from "../../types/book";
+import type { BookGroup, GroupField } from "../../lib/grouping";
+import { groupBooks } from "../../lib/grouping";
 import { StatusPill } from "./StatusPill";
 import "./TableView.css";
 
@@ -103,6 +105,44 @@ export function TableView({ books, libraryKind, onSelect, onBackgroundClick }: T
     return copy;
   }, [books, effectiveSortKey, sortDir]);
 
+  const groupField: GroupField | null =
+    effectiveSortKey === "autor" || effectiveSortKey === "saga" || effectiveSortKey === "estado"
+      ? effectiveSortKey
+      : null;
+  const groups: BookGroup[] | null = useMemo(
+    () => (groupField ? groupBooks(sorted, groupField, audio) : null),
+    [sorted, groupField, audio],
+  );
+
+  function renderRow(book: Book) {
+    return (
+      <tr key={book.id} className="table-body-row" onClick={() => onSelect?.(book)}>
+        <td className="table-cell table-cell--title">{book.titulo}</td>
+        <td className="table-cell">{book.autor}</td>
+        <td className="table-cell table-cell--muted">
+          {book.saga ? `${book.saga.nombre} #${book.saga.numero}` : "—"}
+        </td>
+        <td className="table-cell">
+          <StatusPill estado={book.estado} audio={book.formato === "audiolibro"} />
+        </td>
+        <td className="table-cell table-cell--muted">{book.valoracion ? `★ ${book.valoracion}` : "—"}</td>
+        <td className="table-cell table-cell--center">
+          {book.favorito && <Heart size={14} fill="var(--accent)" color="var(--accent)" />}
+        </td>
+        {!audio && (
+          <td className="table-cell table-cell--center">
+            {book.relectura && <RotateCcw size={14} color="var(--accent)" />}
+          </td>
+        )}
+        <td className="table-cell table-cell--muted">{FORMATO_LABEL[book.formato]}</td>
+        <td className="table-cell table-cell--muted">{book.editorial ?? "—"}</td>
+        <td className="table-cell table-cell--muted">{book.paginas_totales ?? "—"}</td>
+        <td className="table-cell table-cell--muted">{formatDate(book.fechas.inicio_lectura)}</td>
+        <td className="table-cell table-cell--muted">{formatDate(book.fechas.fin_lectura)}</td>
+      </tr>
+    );
+  }
+
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -142,38 +182,23 @@ export function TableView({ books, libraryKind, onSelect, onBackgroundClick }: T
               ))}
             </tr>
           </thead>
-          <tbody>
-            {sorted.map((book) => (
-              <tr key={book.id} className="table-body-row" onClick={() => onSelect?.(book)}>
-                <td className="table-cell table-cell--title">{book.titulo}</td>
-                <td className="table-cell">{book.autor}</td>
-                <td className="table-cell table-cell--muted">
-                  {book.saga ? `${book.saga.nombre} #${book.saga.numero}` : "—"}
-                </td>
-                <td className="table-cell">
-                  <StatusPill estado={book.estado} audio={book.formato === "audiolibro"} />
-                </td>
-                <td className="table-cell table-cell--muted">
-                  {book.valoracion ? `★ ${book.valoracion}` : "—"}
-                </td>
-                <td className="table-cell table-cell--center">
-                  {book.favorito && <Heart size={14} fill="var(--accent)" color="var(--accent)" />}
-                </td>
-                {!audio && (
-                  <td className="table-cell table-cell--center">
-                    {book.relectura && <RotateCcw size={14} color="var(--accent)" />}
+          {groups ? (
+            groups.map((group) => (
+              <tbody key={group.key} className="table-group">
+                <tr className="table-group-header-row">
+                  <td colSpan={columns.length}>
+                    <div className="table-group-header">
+                      <span className="table-group-header-label">{group.label}</span>
+                      <span className="table-group-header-line" aria-hidden="true" />
+                    </div>
                   </td>
-                )}
-                <td className="table-cell table-cell--muted">{FORMATO_LABEL[book.formato]}</td>
-                <td className="table-cell table-cell--muted">{book.editorial ?? "—"}</td>
-                <td className="table-cell table-cell--muted">
-                  {book.paginas_totales ?? "—"}
-                </td>
-                <td className="table-cell table-cell--muted">{formatDate(book.fechas.inicio_lectura)}</td>
-                <td className="table-cell table-cell--muted">{formatDate(book.fechas.fin_lectura)}</td>
-              </tr>
-            ))}
-          </tbody>
+                </tr>
+                {group.books.map(renderRow)}
+              </tbody>
+            ))
+          ) : (
+            <tbody>{sorted.map(renderRow)}</tbody>
+          )}
         </table>
         {sorted.length === 0 && <div className="table-empty">No se han encontrado libros.</div>}
       </div>

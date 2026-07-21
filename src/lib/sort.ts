@@ -11,7 +11,7 @@ export const SORT_LABEL: Record<SortKey, string> = {
   favoritos: "Favoritos",
 };
 
-const ESTADO_ORDER: EstadoLectura[] = ["leyendo", "pospuesto", "quiero_leer", "leido", "abandonado"];
+export const ESTADO_ORDER: EstadoLectura[] = ["leyendo", "pospuesto", "quiero_leer", "leido", "abandonado"];
 
 function byTitulo(a: Book, b: Book): number {
   return a.titulo.localeCompare(b.titulo, "es");
