@@ -318,6 +318,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
               key={renderedBook.id}
               vaultPath={vault.path}
               googleBooksApiKey={googleBooksApiKey}
+              allBooks={books}
               book={renderedBook}
               closing={panelClosing}
               onBack={() => setSelectedBookId(null)}

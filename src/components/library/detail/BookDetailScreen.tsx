@@ -15,6 +15,7 @@ interface BookDetailScreenProps {
   book: Book;
   vaultPath: string;
   googleBooksApiKey: string | null;
+  allBooks: Book[];
   closing?: boolean;
   onBack: () => void;
   onChange: (book: Book) => void;
@@ -25,6 +26,7 @@ export function BookDetailScreen({
   book,
   vaultPath,
   googleBooksApiKey,
+  allBooks,
   closing,
   onBack,
   onChange,
@@ -58,6 +60,7 @@ export function BookDetailScreen({
           book={book}
           vaultPath={vaultPath}
           googleBooksApiKey={googleBooksApiKey}
+          allBooks={allBooks}
           onChange={onChange}
         />
         <EstadoSection book={book} onChange={onChange} />
