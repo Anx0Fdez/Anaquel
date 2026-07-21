@@ -4,6 +4,7 @@ import type { Book } from "../../../types/book";
 import { ConfirmDeleteButton } from "../../ui/ConfirmDeleteButton";
 import { InfoGeneralSection } from "./sections/InfoGeneralSection";
 import { EstadoSection } from "./sections/EstadoSection";
+import { ComentariosSection } from "./sections/ComentariosSection";
 import "./BookDetailScreen.css";
 
 // Organización, Préstamo, Contenido y Notas se ocultan de la interfaz por
@@ -60,6 +61,7 @@ export function BookDetailScreen({
           onChange={onChange}
         />
         <EstadoSection book={book} onChange={onChange} />
+        <ComentariosSection book={book} onChange={onChange} />
       </div>
     </div>
   );

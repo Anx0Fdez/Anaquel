@@ -33,6 +33,7 @@ export interface Book {
   relectura: boolean; // marcar para volver a leerlo en el futuro
   paginas_totales: number | null; // solo relevante si formato != audiolibro
   duracion_min: number | null; // solo relevante si formato == audiolibro
+  comentarios: string | null;
   saga: Saga | null;
   fechas: Fechas;
 }

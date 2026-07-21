@@ -77,6 +77,9 @@ pub struct Book {
     /// Solo tiene sentido cuando `formato == Audiolibro`, en minutos.
     #[serde(default)]
     pub duracion_min: Option<u32>,
+    /// Texto libre del apartado "Comentarios" del panel de detalles.
+    #[serde(default)]
+    pub comentarios: Option<String>,
     pub saga: Option<Saga>,
     pub fechas: Fechas,
 }
