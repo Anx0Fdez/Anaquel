@@ -3,19 +3,29 @@ import { useDismiss } from "../../../lib/useDismiss";
 import "./Fields.css";
 import "./DropdownSelect.css";
 
-interface SagaAutocompleteFieldProps {
+interface AutocompleteTextFieldProps {
   label: string;
   value: string;
   options: string[];
   onChange: (value: string) => void;
   placeholder?: string;
+  hideLabel?: boolean;
+  inputClassName?: string;
 }
 
 /** Como TextField, pero con un desplegable de sugerencias tomadas de `options`
- * (las sagas ya usadas en la biblioteca) mientras se escribe. Sigue
- * permitiendo texto libre: elegir una sugerencia solo rellena el campo,
- * no restringe lo que se puede escribir. */
-export function SagaAutocompleteField({ label, value, options, onChange, placeholder }: SagaAutocompleteFieldProps) {
+ * (valores ya usados en la biblioteca, p. ej. sagas, autores o editoriales)
+ * mientras se escribe. Sigue permitiendo texto libre: elegir una sugerencia
+ * solo rellena el campo, no restringe lo que se puede escribir. */
+export function AutocompleteTextField({
+  label,
+  value,
+  options,
+  onChange,
+  placeholder,
+  hideLabel,
+  inputClassName,
+}: AutocompleteTextFieldProps) {
   const [draft, setDraft] = useState(value);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -44,12 +54,13 @@ export function SagaAutocompleteField({ label, value, options, onChange, placeho
 
   return (
     <label className="field">
-      <span>{label}</span>
-      <div className="dropdown-select saga-autocomplete" ref={rootRef}>
+      {!hideLabel && <span>{label}</span>}
+      <div className="dropdown-select autocomplete-field" ref={rootRef}>
         <input
-          className="field-input"
+          className={`field-input${inputClassName ? ` ${inputClassName}` : ""}`}
           value={draft}
-          placeholder={placeholder}
+          placeholder={placeholder ?? (hideLabel ? label : undefined)}
+          aria-label={hideLabel ? label : undefined}
           onChange={(e) => {
             setDraft(e.target.value);
             setOpen(true);
