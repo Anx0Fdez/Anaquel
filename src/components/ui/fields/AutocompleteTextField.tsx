@@ -28,7 +28,9 @@ export function AutocompleteTextField({
 }: AutocompleteTextFieldProps) {
   const [draft, setDraft] = useState(value);
   const [open, setOpen] = useState(false);
+  const [highlighted, setHighlighted] = useState(-1);
   const rootRef = useRef<HTMLDivElement>(null);
+  const optionRefs = useRef<(HTMLLIElement | null)[]>([]);
 
   useEffect(() => {
     setDraft(value);
@@ -46,10 +48,32 @@ export function AutocompleteTextField({
     return options.filter((o) => o.toLowerCase().includes(q) && o.toLowerCase() !== q).slice(0, 8);
   }, [draft, options]);
 
+  useEffect(() => {
+    setHighlighted(-1);
+  }, [draft]);
+
+  useEffect(() => {
+    optionRefs.current[highlighted]?.scrollIntoView({ block: "nearest" });
+  }, [highlighted]);
+
   function selectOption(name: string) {
     setDraft(name);
     if (name !== value) onChange(name);
     setOpen(false);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!open || matches.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlighted((h) => (h + 1) % matches.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlighted((h) => (h <= 0 ? matches.length - 1 : h - 1));
+    } else if (e.key === "Enter" && highlighted >= 0) {
+      e.preventDefault();
+      selectOption(matches[highlighted]);
+    }
   }
 
   return (
@@ -67,15 +91,24 @@ export function AutocompleteTextField({
           }}
           onFocus={() => setOpen(true)}
           onBlur={commit}
+          onKeyDown={handleKeyDown}
         />
         {open && matches.length > 0 && (
           <ul className="dropdown-menu" role="listbox">
-            {matches.map((name) => (
-              <li key={name} role="option">
+            {matches.map((name, i) => (
+              <li
+                key={name}
+                ref={(el) => {
+                  optionRefs.current[i] = el;
+                }}
+                role="option"
+                aria-selected={i === highlighted}
+              >
                 <button
                   type="button"
-                  className="dropdown-menu-item"
+                  className={`dropdown-menu-item${i === highlighted ? " dropdown-menu-item--highlighted" : ""}`}
                   onMouseDown={(e) => e.preventDefault()}
+                  onMouseEnter={() => setHighlighted(i)}
                   onClick={() => selectOption(name)}
                 >
                   {name}
