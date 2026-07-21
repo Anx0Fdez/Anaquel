@@ -78,6 +78,7 @@ export function AddBookDialog({
       relectura: estado === "leido" ? relectura : false,
       paginas_totales: null,
       duracion_min: null,
+      comentarios: null,
       saga: null,
       fechas: {
         añadido: hoy,

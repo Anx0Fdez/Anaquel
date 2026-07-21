@@ -45,6 +45,7 @@ forma estable aunque se le cambie el título.
     "comprar_fisico": false,
     "relectura": false,
     "paginas_totales": 662,
+    "comentarios": null,
     "saga": { "nombre": "Crónica del asesino de reyes", "numero": 1, "total_libros": 3 },
     "fechas": { "añadido": "2026-06-01", "inicio_lectura": "2026-06-20", "fin_lectura": null }
   }
@@ -73,6 +74,9 @@ forma estable aunque se le cambie el título.
   anidar, para que no haya dos sitios que puedan desincronizarse.
 - **`valoracion` va de 0 a 10 en pasos de 0.5** y se edita con un slider, no
   escribiendo el número.
+- **`comentarios`** es texto libre sin formato, editado desde una ventana
+  flotante propia en el panel de detalles (apartado "Comentarios"); `null`
+  cuando está vacío.
 - **Autocompletado por ISBN**: al escribir un ISBN válido (10 o 13 dígitos) en
   el diálogo de añadir libro o en la ficha de un libro existente, la app
   consulta Open Library y, si no encuentra nada, Google Books como respaldo
