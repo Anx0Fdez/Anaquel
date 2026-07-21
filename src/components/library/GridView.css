@@ -1,11 +1,14 @@
-.grid-view {
+.grid-view-scroll {
   flex: 1;
   overflow-y: auto;
+  padding: 22px 22px 4px;
+}
+
+.grid-view {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 185px));
   align-items: start;
   gap: 22px 20px;
-  padding: 22px;
 }
 
 .grid-view--pequeno {
@@ -16,6 +19,51 @@
 .grid-view--grande {
   grid-template-columns: repeat(auto-fill, minmax(212px, 232px));
   gap: 28px 26px;
+}
+
+@keyframes gridGroupIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.grid-group {
+  animation: gridGroupIn 280ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.grid-group + .grid-group {
+  margin-top: 34px;
+}
+
+.grid-group:not(:last-child) {
+  margin-bottom: 4px;
+}
+
+.grid-group-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 16px;
+}
+
+.grid-group-header-label {
+  flex-shrink: 0;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.1px;
+}
+
+.grid-group-header-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--border-strong), transparent 92%);
 }
 
 @keyframes spineIn {
