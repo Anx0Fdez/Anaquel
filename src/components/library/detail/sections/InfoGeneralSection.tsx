@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Barcode, Building2, Clock, Hash, Heart, ImagePlus, Layers, LibraryBig, Sparkles } from "lucide-react";
 import type { Book, FormatoLibro } from "../../../../types/book";
 import { FORMATO_LABEL } from "../../../../types/book";
 import { DetailSection } from "../DetailSection";
 import { TextField } from "../../../ui/fields/TextField";
 import { SelectField } from "../../../ui/fields/SelectField";
+import { SagaAutocompleteField } from "../../../ui/fields/SagaAutocompleteField";
 import { BookCoverArt } from "../../BookCoverArt";
 import { StarRatingField } from "../../../ui/fields/StarRatingField";
 import { useIsbnLookup } from "../../../../lib/useIsbnLookup";
@@ -15,18 +16,33 @@ interface InfoGeneralSectionProps {
   book: Book;
   vaultPath: string;
   googleBooksApiKey: string | null;
+  allBooks: Book[];
   onChange: (book: Book) => void;
 }
 
 const FORMATOS: FormatoLibro[] = ["fisico", "ebook", "comprar", "audiolibro"];
 const FORMATO_OPTIONS = FORMATOS.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
 
-export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, onChange }: InfoGeneralSectionProps) {
+export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBooks, onChange }: InfoGeneralSectionProps) {
   // Vacío a propósito (no `book.isbn`): así abrir un libro que ya tiene ISBN
   // no dispara una búsqueda de fondo cada vez — solo se busca cuando el
   // usuario edita el campo de verdad.
   const [isbnDraft, setIsbnDraft] = useState("");
   const { status, result } = useIsbnLookup(vaultPath, isbnDraft, googleBooksApiKey);
+
+  // Nombres de saga ya usados en la biblioteca (deduplicados, orden de
+  // primera aparición), para sugerirlos como autocompletado al escribir.
+  const sagaOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const names: string[] = [];
+    for (const b of allBooks) {
+      const nombre = b.saga?.nombre.trim();
+      if (!nombre || seen.has(nombre.toLowerCase())) continue;
+      seen.add(nombre.toLowerCase());
+      names.push(nombre);
+    }
+    return names;
+  }, [allBooks]);
 
   useEffect(() => {
     if (result) onChange(applyMetadata(book, result));
@@ -160,9 +176,10 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, onChang
           <div className="fact-row-group">
             <div className="fact-row">
               <Layers size={14} strokeWidth={2} />
-              <TextField
+              <SagaAutocompleteField
                 label="Colección"
                 value={book.saga?.nombre ?? ""}
+                options={sagaOptions}
                 onChange={(v) => {
                   const nombre = v.trim();
                   if (!nombre) {

@@ -67,7 +67,7 @@ export function Topbar({
           ref={searchRef}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Buscar por título, autor, ISBN..."
+          placeholder="Buscar por título, autor o saga..."
         />
         <kbd className="topbar-search-kbd">Ctrl+K</kbd>
       </div>

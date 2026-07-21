@@ -45,7 +45,11 @@ export function matchesFilter(book: Book, f: NavFilter): boolean {
 export function matchesSearch(book: Book, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  return book.titulo.toLowerCase().includes(q) || book.autor.toLowerCase().includes(q);
+  return (
+    book.titulo.toLowerCase().includes(q) ||
+    book.autor.toLowerCase().includes(q) ||
+    (book.saga?.nombre.toLowerCase().includes(q) ?? false)
+  );
 }
 
 export function filterLabel(f: NavFilter): string {
