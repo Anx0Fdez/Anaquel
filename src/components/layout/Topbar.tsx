@@ -3,7 +3,7 @@ import { ArrowUpDown, Grid2x2, Grid3x3, LayoutGrid, Plus, Search, Square, Table2
 import type { GridCardSize, LibraryKind, ViewMode } from "../../types/book";
 import { GRID_CARD_SIZE_LABEL } from "../../types/book";
 import type { SortKey } from "../../lib/sort";
-import { SORT_LABEL } from "../../lib/sort";
+import { sortLabel } from "../../lib/sort";
 import { DropdownSelect } from "../ui/fields/DropdownSelect";
 import "./Topbar.css";
 
@@ -25,8 +25,7 @@ const VIEW_MODES: { mode: ViewMode; icon: typeof LayoutGrid; label: string }[] =
   { mode: "table", icon: Table2, label: "Vista de tabla" },
 ];
 
-const SORT_KEYS: SortKey[] = ["titulo", "autor", "saga", "valoracion", "estado", "favoritos"];
-const SORT_OPTIONS = SORT_KEYS.map((key) => ({ value: key, label: SORT_LABEL[key] }));
+const SORT_KEYS: SortKey[] = ["titulo", "autor", "saga", "valoracion", "estado", "favoritos", "paginas"];
 
 const CARD_SIZES: { size: GridCardSize; icon: typeof Square }[] = [
   { size: "grande", icon: Square },
@@ -47,6 +46,8 @@ export function Topbar({
   onAddBook,
 }: TopbarProps) {
   const searchRef = useRef<HTMLInputElement>(null);
+  const audio = libraryKind === "audiolibros";
+  const sortOptions = SORT_KEYS.map((key) => ({ value: key, label: sortLabel(key, audio) }));
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -94,7 +95,7 @@ export function Topbar({
         <ArrowUpDown size={14} strokeWidth={2} />
         <DropdownSelect
           value={sortKey}
-          options={SORT_OPTIONS}
+          options={sortOptions}
           onChange={(v) => onSortKeyChange(v as SortKey)}
           triggerClassName="topbar-sort-trigger"
           align="right"
