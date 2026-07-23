@@ -88,6 +88,7 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--bg-elevated);
+  overflow: hidden;
   opacity: 0;
   /* Declarada como una única animación combinada (en vez de una segunda
      declaración de `animation` en .book-spine--active) a propósito: el
@@ -182,9 +183,10 @@
 .book-spine-meta {
   margin-top: 6px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px 6px;
 }
 
 .book-spine-meta-right {
