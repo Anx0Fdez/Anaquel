@@ -47,6 +47,14 @@ pub struct VaultConfig {
     /// es gratuita y se saca en la Google Cloud Console.
     #[serde(default)]
     pub google_books_api_key: Option<String>,
+    /// `true` una vez que las valoraciones del vault ya se migraron de la
+    /// escala antigua (0-10, medio punto de estrella por unidad) a la nueva
+    /// (1-5 estrellas enteras) — ver `library::migrate_valoraciones`. Los
+    /// vaults creados desde cero nacen ya en `true` (nada que migrar); los
+    /// que vienen de una versión anterior cargan `false` (el campo no
+    /// existía en su `config.json`) y disparan la migración una única vez.
+    #[serde(default)]
+    pub rating_migrated: bool,
 }
 
 impl Default for VaultConfig {
@@ -62,6 +70,7 @@ impl Default for VaultConfig {
             last_library_kind: None,
             grid_card_size: None,
             google_books_api_key: None,
+            rating_migrated: true,
         }
     }
 }
@@ -132,6 +141,30 @@ fn vault_name_from_path(path: &Path) -> String {
     path.file_name()
         .map(|n| n.to_string_lossy().to_string())
         .unwrap_or_else(|| path.to_string_lossy().to_string())
+}
+
+fn config_path(vault_path: &str) -> PathBuf {
+    Path::new(vault_path).join(ANANQUEL_DIR).join(CONFIG_FILE)
+}
+
+/// Lee `config.json`, o la config por defecto si falta o no se puede leer
+/// (mismo criterio permisivo que ya usaba `load_or_init_config`). Pensada
+/// para que otros módulos (p. ej. `library::load_books`, para comprobar
+/// `rating_migrated`) puedan leer la config sin depender de los comandos de
+/// Tauri de este módulo.
+pub fn read_config(vault_path: &str) -> VaultConfig {
+    fs::read_to_string(config_path(vault_path))
+        .ok()
+        .and_then(|raw| serde_json::from_str(&raw).ok())
+        .unwrap_or_default()
+}
+
+/// Contraparte de `read_config`: sobrescribe `config.json` con `config` tal
+/// cual. Falla en silencio si el vault no tiene ya `.ananquel/` (no debería
+/// pasar, `load_books` solo la llama tras haber leído la config de ahí).
+pub fn write_config(vault_path: &str, config: &VaultConfig) -> Result<(), String> {
+    let raw = serde_json::to_string_pretty(config).map_err(|e| e.to_string())?;
+    fs::write(config_path(vault_path), raw).map_err(|e| e.to_string())
 }
 
 fn load_or_init_config(ananquel_dir: &Path) -> Result<VaultConfig, String> {
@@ -208,10 +241,16 @@ pub fn open_vault(app: AppHandle, path: String) -> Result<VaultInfo, String> {
 }
 
 #[tauri::command]
-pub fn save_vault_config(path: String, config: VaultConfig) -> Result<(), String> {
-    let config_path = Path::new(&path).join(ANANQUEL_DIR).join(CONFIG_FILE);
+pub fn save_vault_config(path: String, mut config: VaultConfig) -> Result<(), String> {
+    // `rating_migrated` es contabilidad interna de `library::load_books`, no
+    // algo que el frontend conozca o deba mandar — si se tomara tal cual del
+    // payload (que nunca lo incluye), cada guardado de preferencias normal
+    // (cambiar tema, orden...) lo resetearía a `false` y dispararía una
+    // re-migración corrupta de las valoraciones en el siguiente arranque. Se
+    // preserva siempre el valor que ya hay en disco.
+    config.rating_migrated = read_config(&path).rating_migrated;
     let raw = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-    fs::write(&config_path, raw).map_err(|e| e.to_string())
+    fs::write(&config_path(&path), raw).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

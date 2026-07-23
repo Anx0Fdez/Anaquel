@@ -61,7 +61,15 @@ pub struct Book {
     pub formato: FormatoLibro,
     #[serde(default)]
     pub editorial: Option<String>,
-    pub valoracion: Option<f32>,
+    /// 1-5 estrellas enteras (sin medias). El deserializador es permisivo
+    /// (acepta números con o sin parte decimal) porque los vaults creados
+    /// antes de este cambio guardaban la escala antigua (0-10, en enteros,
+    /// medio punto por estrella) con este mismo campo — `migrate_valoraciones`
+    /// se encarga de convertir esos valores la primera vez que se abre el
+    /// vault; sin este deserializador permisivo, cargar un vault antiguo
+    /// fallaría directamente al leer un valor como `9.0`.
+    #[serde(default, deserialize_with = "deserialize_valoracion")]
+    pub valoracion: Option<u8>,
     #[serde(default)]
     pub favorito: bool,
     /// Solo tiene sentido cuando `formato == Audiolibro` y `estado == Leido`:
@@ -86,6 +94,30 @@ pub struct Book {
 
 fn ananquel_dir(vault_path: &str) -> std::path::PathBuf {
     Path::new(vault_path).join(ANANQUEL_DIR)
+}
+
+fn deserialize_valoracion<'de, D>(deserializer: D) -> Result<Option<u8>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let raw = Option::<f64>::deserialize(deserializer)?;
+    Ok(raw.map(|v| v.round().clamp(0.0, 255.0) as u8))
+}
+
+/// Convierte las valoraciones de la escala antigua (0-10 en enteros, medio
+/// punto de estrella por unidad: p. ej. 9 = 4.5★) a la nueva (1-5 estrellas
+/// enteras, sin medias): dividir entre 2 y redondear a la unidad más
+/// cercana (mitad hacia arriba, el redondeo estándar de Rust para `f64`),
+/// para minimizar la pérdida de información — p. ej. 9 (4.5★) -> 5,
+/// 7 (3.5★) -> 4, 1 (0.5★) -> 1. Solo se llama una vez por vault, controlado
+/// por `VaultConfig::rating_migrated` en `load_books`.
+fn migrate_valoraciones(books: &mut [Book]) {
+    for book in books.iter_mut() {
+        if let Some(old) = book.valoracion {
+            let nuevo = ((old as f64 / 2.0).round() as i32).clamp(1, 5) as u8;
+            book.valoracion = Some(nuevo);
+        }
+    }
 }
 
 /// Renombra un archivo con el nombre antiguo al nuevo si el nuevo todavía no
@@ -151,6 +183,9 @@ fn write_books_file(file: &Path, books: &[Book]) -> Result<(), String> {
 /// fallo a medias no duplique nada) y se escribe primero el archivo que
 /// *añade* datos y solo después el que *quita* — así un fallo entre medias
 /// deja como mucho un duplicado recuperable, nunca una pérdida.
+///
+/// También dispara `migrate_valoraciones` la primera vez que se abre un
+/// vault con valoraciones en la escala antigua (ver `VaultConfig::rating_migrated`).
 #[tauri::command]
 pub fn load_books(path: String) -> Result<Vec<Book>, String> {
     let vault_dir = Path::new(&path);
@@ -163,8 +198,18 @@ pub fn load_books(path: String) -> Result<Vec<Book>, String> {
     let library_file = vault_dir.join(LIBRARY_FILE);
     let audiobooks_file = vault_dir.join(AUDIOBOOKS_FILE);
 
-    let libros_raw = read_books_file(&library_file)?;
-    let audiolibros_raw = read_books_file(&audiobooks_file)?;
+    let mut libros_raw = read_books_file(&library_file)?;
+    let mut audiolibros_raw = read_books_file(&audiobooks_file)?;
+
+    let mut config = crate::vault::read_config(&path);
+    if !config.rating_migrated {
+        migrate_valoraciones(&mut libros_raw);
+        migrate_valoraciones(&mut audiolibros_raw);
+        write_books_file(&library_file, &libros_raw)?;
+        write_books_file(&audiobooks_file, &audiolibros_raw)?;
+        config.rating_migrated = true;
+        let _ = crate::vault::write_config(&path, &config);
+    }
 
     let (mezclados, libros): (Vec<Book>, Vec<Book>) =
         libros_raw.into_iter().partition(|b| b.formato == FormatoLibro::Audiolibro);

@@ -39,33 +39,25 @@ export function StarRatingField({ value, onChange }: StarRatingFieldProps) {
         onMouseLeave={() => setHoverValue(null)}
       >
         {Array.from({ length: STAR_COUNT }, (_, i) => {
-          const starFloor = i * 2;
-          const fillPercent = Math.max(0, Math.min(100, (display - starFloor) * 50));
+          const starValue = i + 1;
+          const filled = display >= starValue;
           return (
             <span key={i} className="star-slot">
               <Star className="star-icon star-icon--bg" size={18} strokeWidth={1.75} />
-              <span className="star-icon-fill" style={{ width: `${fillPercent}%` }}>
+              <span className="star-icon-fill" style={{ width: filled ? "100%" : "0%" }}>
                 <Star className="star-icon star-icon--fg" size={18} strokeWidth={1.75} fill="currentColor" />
               </span>
               <button
                 type="button"
-                className="star-hit star-hit--left"
-                aria-label={`${starFloor + 1} de 10`}
-                onMouseEnter={() => setHoverValue(starFloor + 1)}
-                onClick={() => pick(starFloor + 1)}
-              />
-              <button
-                type="button"
-                className="star-hit star-hit--right"
-                aria-label={`${starFloor + 2} de 10`}
-                onMouseEnter={() => setHoverValue(starFloor + 2)}
-                onClick={() => pick(starFloor + 2)}
+                className="star-hit"
+                aria-label={`${starValue} de 5 estrellas`}
+                onMouseEnter={() => setHoverValue(starValue)}
+                onClick={() => pick(starValue)}
               />
             </span>
           );
         })}
       </div>
-      {value != null && <span className="star-rating-value">{value.toFixed(1).replace(/\.0$/, "")}</span>}
     </div>
   );
 }

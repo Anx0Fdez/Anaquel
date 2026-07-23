@@ -1,0 +1,14 @@
+.star-rating-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.star-rating-display-icon {
+  color: var(--border-strong);
+}
+
+.star-rating-display-icon--filled {
+  color: var(--accent);
+}
