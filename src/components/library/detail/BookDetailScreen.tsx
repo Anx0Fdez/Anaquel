@@ -1,10 +1,14 @@
 import { useEffect } from "react";
+import type { CSSProperties } from "react";
 import { ArrowLeft } from "lucide-react";
 import type { Book } from "../../../types/book";
 import { ConfirmDeleteButton } from "../../ui/ConfirmDeleteButton";
 import { InfoGeneralSection } from "./sections/InfoGeneralSection";
 import { EstadoSection } from "./sections/EstadoSection";
 import { ComentariosSection } from "./sections/ComentariosSection";
+import { coverPaletteFor } from "../../../lib/coverArt";
+import { useCoverImage } from "../../../lib/useCoverImage";
+import { useCoverAccent } from "../../../lib/useCoverAccent";
 import "./BookDetailScreen.css";
 
 // Organización, Préstamo, Contenido y Notas se ocultan de la interfaz por
@@ -40,8 +44,17 @@ export function BookDetailScreen({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onBack]);
 
+  // Acento local del panel, derivado del color dominante de la portada real
+  // (o, si no hay una, de la paleta determinista de su portada tipográfica)
+  // — nunca toca el acento global de la app, solo sobrescribe --accent
+  // dentro de este panel vía la custom property inline de abajo.
+  const coverUrl = useCoverImage(vaultPath, book.portada);
+  const extractedAccent = useCoverAccent(coverUrl);
+  const accent = extractedAccent ?? coverPaletteFor(book.id || book.titulo).bg;
+  const accentStyle = { "--accent": accent } as CSSProperties;
+
   return (
-    <div className={`book-detail${closing ? " book-detail--closing" : ""}`}>
+    <div className={`book-detail${closing ? " book-detail--closing" : ""}`} style={accentStyle}>
       <header className="book-detail-header">
         <button className="book-detail-back" onClick={onBack}>
           <ArrowLeft size={16} />
