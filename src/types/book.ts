@@ -27,7 +27,7 @@ export interface Book {
   estado: EstadoLectura;
   formato: FormatoLibro;
   editorial: string | null;
-  valoracion: number | null; // 0-10, en pasos de 0.5
+  valoracion: number | null; // 1-5 estrellas enteras, sin medias
   favorito: boolean;
   comprar_fisico: boolean; // solo relevante si formato=audiolibro y estado=leido
   relectura: boolean; // marcar para volver a leerlo en el futuro

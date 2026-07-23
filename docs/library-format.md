@@ -40,7 +40,7 @@ forma estable aunque se le cambie el título.
     "estado": "leyendo",
     "formato": "fisico",
     "editorial": "Plaza & Janés",
-    "valoracion": 9,
+    "valoracion": 4,
     "favorito": true,
     "comprar_fisico": false,
     "relectura": false,
@@ -83,8 +83,19 @@ forma estable aunque se le cambie el título.
   nunca los dos a la vez. Solo se rellena a mano — ni Open Library ni Google
   Books devuelven duración de audiolibro, así que el autocompletado por ISBN
   no lo toca.
-- **`valoracion` va de 0 a 10 en pasos de 0.5** y se edita con un slider, no
-  escribiendo el número.
+- **`valoracion` va de 1 a 5 estrellas enteras** (sin medias estrellas) y se
+  edita pulsando una estrella (`StarRatingField`); la interfaz nunca la
+  muestra como número, solo como estrellas (`StarRatingDisplay` en las
+  vistas de solo lectura). `null` significa que el libro no tiene
+  valoración todavía.
+  - **Migración desde la escala antigua**: antes de este cambio la escala
+    era 0-10 (medio punto de estrella por unidad, p. ej. `9` = 4.5★). Al
+    abrir un vault creado con una versión anterior, `load_books` convierte
+    automáticamente cada valor dividiéndolo entre 2 y redondeando a la
+    unidad más cercana (p. ej. `9` → `5`, `7` → `4`, `1` → `1`), una única
+    vez por vault — controlado por `VaultConfig.rating_migrated` en
+    `config.json`, que `save_vault_config` preserva siempre desde disco para
+    que ningún guardado de preferencias normal lo resetee sin querer.
 - **`comentarios`** es texto libre sin formato, editado desde una ventana
   flotante propia en el panel de detalles (apartado "Comentarios"); `null`
   cuando está vacío.

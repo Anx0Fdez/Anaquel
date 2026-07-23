@@ -5,6 +5,7 @@ import { FORMATO_LABEL } from "../../types/book";
 import type { BookGroup, GroupField } from "../../lib/grouping";
 import { groupBooks } from "../../lib/grouping";
 import { StatusPill } from "./StatusPill";
+import { StarRatingDisplay } from "../ui/StarRatingDisplay";
 import "./TableView.css";
 
 type SortKey =
@@ -125,7 +126,9 @@ export function TableView({ books, libraryKind, onSelect, onBackgroundClick }: T
         <td className="table-cell">
           <StatusPill estado={book.estado} audio={book.formato === "audiolibro"} />
         </td>
-        <td className="table-cell table-cell--muted">{book.valoracion ? `★ ${book.valoracion}` : "—"}</td>
+        <td className="table-cell table-cell--muted">
+          {book.valoracion != null ? <StarRatingDisplay value={book.valoracion} size={13} /> : "—"}
+        </td>
         <td className="table-cell table-cell--center">
           {book.favorito && <Heart size={14} fill="var(--accent)" color="var(--accent)" />}
         </td>
