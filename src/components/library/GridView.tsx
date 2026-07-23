@@ -42,6 +42,16 @@ function BookSpine({
       <div className="book-spine-cover">
         <BookCoverArt book={book} vaultPath={vaultPath} />
         {book.favorito && <Heart className="book-spine-fav" size={13} fill="currentColor" />}
+        {book.formato !== "audiolibro" && book.relectura && (
+          <RotateCcw className="book-spine-cover-icon" size={13} strokeWidth={2}>
+            <title>Marcado para relectura</title>
+          </RotateCcw>
+        )}
+        {book.comprar_fisico && (
+          <ShoppingBag className="book-spine-cover-icon" size={13} strokeWidth={2}>
+            <title>Pendiente de comprar en físico</title>
+          </ShoppingBag>
+        )}
       </div>
 
       <div className="book-spine-text">
@@ -49,19 +59,11 @@ function BookSpine({
         <p className="book-spine-author">{book.autor}</p>
         <div className="book-spine-meta">
           <StatusPill estado={book.estado} audio={book.formato === "audiolibro"} size="sm" />
-          <div className="book-spine-meta-right">
-            {book.valoracion != null && <StarRatingDisplay value={book.valoracion} size={9} />}
-            {book.formato !== "audiolibro" && book.relectura && (
-              <span className="book-spine-badge" title="Marcado para relectura">
-                <RotateCcw size={12} strokeWidth={2} />
-              </span>
-            )}
-            {book.comprar_fisico && (
-              <span className="book-spine-badge" title="Pendiente de comprar en físico">
-                <ShoppingBag size={12} strokeWidth={2} />
-              </span>
-            )}
-          </div>
+          {book.valoracion != null && (
+            <div className="book-spine-meta-right">
+              <StarRatingDisplay value={book.valoracion} size={9} />
+            </div>
+          )}
         </div>
       </div>
     </button>
