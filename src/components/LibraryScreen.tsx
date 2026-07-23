@@ -238,11 +238,20 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
   // deja tiempo a que una transición CSS de salida se vea).
   const [renderedBook, setRenderedBook] = useState<Book | null>(null);
   const [panelClosing, setPanelClosing] = useState(false);
+  // `BookDetailScreen` se remonta (key={id}) al cambiar de libro seleccionado,
+  // para que su estado interno (borrador de ISBN, editor de comentarios
+  // abierto...) no se arrastre de un libro a otro. Ese remonte por sí solo ya
+  // reproduce la animación de entrada — sin este flag, saltar de un libro
+  // abierto a otro directamente (sin pasar por la cuadrícula) hacía que el
+  // panel pareciera "recargarse" en cada cambio. Solo debe animarse al abrir
+  // el panel desde cero; entre dos libros ya abiertos aparece al instante.
+  const [switchingBook, setSwitchingBook] = useState(false);
   const closeTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (selectedBook) {
       window.clearTimeout(closeTimer.current);
+      setSwitchingBook(renderedBook !== null && renderedBook.id !== selectedBook.id);
       setRenderedBook(selectedBook);
       setPanelClosing(false);
     } else if (renderedBook) {
@@ -253,6 +262,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
       }, 220);
     }
     return () => window.clearTimeout(closeTimer.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBook]);
 
   if (!loaded) {
@@ -321,6 +331,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
               allBooks={books}
               book={renderedBook}
               closing={panelClosing}
+              instant={switchingBook}
               onBack={() => setSelectedBookId(null)}
               onChange={(updated) =>
                 persistBooks(books.map((b) => (b.id === updated.id ? updated : b)))
