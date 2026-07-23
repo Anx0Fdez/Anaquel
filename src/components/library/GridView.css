@@ -89,7 +89,16 @@
   border-radius: var(--radius-md);
   background: var(--bg-elevated);
   opacity: 0;
-  animation: spineIn 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  /* Declarada como una única animación combinada (en vez de una segunda
+     declaración de `animation` en .book-spine--active) a propósito: el
+     shorthand `animation` no se combina entre selectores — la segunda
+     declaración sustituiría por completo a esta, y al quitar la clase
+     --active el navegador volvería a arrancar spineIn desde cero (la
+     tarjeta "desaparecía y reaparecía" al deseleccionarla). Con --spine-pulse
+     como segundo animation-name en la misma propiedad, seleccionar/deseleccionar
+     solo cambia esa segunda ranura sin reiniciar spineIn. */
+  --spine-pulse: none;
+  animation: spineIn 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both, var(--spine-pulse) 260ms ease-out;
   transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
 }
 
@@ -121,7 +130,7 @@
   box-shadow:
     0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, transparent),
     0 0 20px color-mix(in srgb, var(--accent) 28%, transparent);
-  animation: spineSelectPulse 260ms ease-out;
+  --spine-pulse: spineSelectPulse;
 }
 
 .book-spine-cover {

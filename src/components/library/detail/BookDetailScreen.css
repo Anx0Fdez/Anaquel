@@ -37,6 +37,10 @@
   pointer-events: none;
 }
 
+.book-detail--instant {
+  animation: none;
+}
+
 .book-detail-header {
   display: flex;
   align-items: center;

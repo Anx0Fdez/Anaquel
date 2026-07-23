@@ -17,6 +17,10 @@ interface BookDetailScreenProps {
   googleBooksApiKey: string | null;
   allBooks: Book[];
   closing?: boolean;
+  /** `true` cuando este panel reemplaza a otro libro ya abierto (no una
+   * apertura desde cero): se omite la animación de entrada para que saltar
+   * entre libros ya abiertos no parezca una recarga. */
+  instant?: boolean;
   onBack: () => void;
   onChange: (book: Book) => void;
   onDelete: () => void;
@@ -28,6 +32,7 @@ export function BookDetailScreen({
   googleBooksApiKey,
   allBooks,
   closing,
+  instant,
   onBack,
   onChange,
   onDelete,
@@ -41,7 +46,9 @@ export function BookDetailScreen({
   }, [onBack]);
 
   return (
-    <div className={`book-detail${closing ? " book-detail--closing" : ""}`}>
+    <div
+      className={`book-detail${closing ? " book-detail--closing" : ""}${instant ? " book-detail--instant" : ""}`}
+    >
       <header className="book-detail-header">
         <button className="book-detail-back" onClick={onBack}>
           <ArrowLeft size={16} />
