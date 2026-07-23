@@ -145,7 +145,18 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  color: #fff;
+  color: var(--accent);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+
+/* Relectura y comprar-en-físico son mutuamente excluyentes (el primero solo
+   aplica a no-audiolibros, el segundo solo a audiolibros), así que comparten
+   posición — mismo estilo que el corazón de favorito, en la esquina opuesta. */
+.book-spine-cover-icon {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  color: var(--accent);
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
 }
 
@@ -190,14 +201,7 @@
 .book-spine-meta-right {
   display: flex;
   align-items: center;
-  gap: 6px;
   flex-shrink: 0;
-}
-
-.book-spine-badge {
-  display: inline-flex;
-  align-items: center;
-  color: var(--text-muted);
 }
 
 .grid-empty {
