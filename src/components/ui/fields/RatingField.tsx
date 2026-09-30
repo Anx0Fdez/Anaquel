@@ -9,7 +9,7 @@ const options = [
   { value: "", label: "Sin valorar" },
   ...Array.from({ length: 10 }, (_, index) => {
     const rating = index + 1;
-    return { value: String(rating), label: `${rating}/10` };
+    return { value: String(rating), label: String(rating) };
   }),
 ];
 
