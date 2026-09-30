@@ -54,8 +54,6 @@ pub struct Book {
     #[serde(default)]
     pub relectura: bool,
     #[serde(default)]
-    pub duracion_min: Option<u32>,
-    #[serde(default)]
     pub comentarios: Option<String>,
     pub fechas: Fechas,
 }
@@ -69,7 +67,7 @@ where
 }
 
 const COLUMNS: &str = "id, position, titulo, autor, isbn, portada, estado, formato, valoracion,
-    comprar_fisico, relectura, duracion_min, comentarios, anadido, inicio_lectura, fin_lectura";
+    comprar_fisico, relectura, comentarios, anadido, inicio_lectura, fin_lectura";
 const SCHEMA: &str = "
     id TEXT PRIMARY KEY NOT NULL, position INTEGER NOT NULL,
     titulo TEXT NOT NULL, autor TEXT NOT NULL, isbn TEXT, portada TEXT,
@@ -77,8 +75,7 @@ const SCHEMA: &str = "
     formato TEXT NOT NULL CHECK(formato IN ('libro','audiolibro')),
     valoracion INTEGER CHECK(valoracion BETWEEN 1 AND 10),
     comprar_fisico INTEGER NOT NULL, relectura INTEGER NOT NULL,
-    duracion_min INTEGER CHECK(duracion_min >= 0), comentarios TEXT,
-    anadido TEXT NOT NULL, inicio_lectura TEXT, fin_lectura TEXT";
+    comentarios TEXT, anadido TEXT NOT NULL, inicio_lectura TEXT, fin_lectura TEXT";
 
 fn has_column(conn: &Connection, table: &str, column: &str) -> Result<bool, String> {
     let mut stmt = conn
@@ -131,8 +128,8 @@ fn insert_books(conn: &Connection, books: &[Book]) -> Result<(), String> {
         };
         conn.execute(
             &format!(
-                "INSERT INTO {table} ({COLUMNS})
-            VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)"
+            "INSERT INTO {table} ({COLUMNS})
+            VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)"
             ),
             params![
                 b.id,
@@ -146,7 +143,6 @@ fn insert_books(conn: &Connection, books: &[Book]) -> Result<(), String> {
                 b.valoracion,
                 b.comprar_fisico,
                 b.relectura,
-                b.duracion_min,
                 b.comentarios,
                 b.fechas.anadido,
                 b.fechas.inicio_lectura,
@@ -190,12 +186,11 @@ fn read_database_books(conn: &Connection) -> Result<Vec<Book>, String> {
                 valoracion: r.get(8)?,
                 comprar_fisico: r.get(9)?,
                 relectura: r.get(10)?,
-                duracion_min: r.get(11)?,
-                comentarios: r.get(12)?,
+                comentarios: r.get(11)?,
                 fechas: Fechas {
-                    anadido: r.get(13)?,
-                    inicio_lectura: r.get(14)?,
-                    fin_lectura: r.get(15)?,
+                    anadido: r.get(12)?,
+                    inicio_lectura: r.get(13)?,
+                    fin_lectura: r.get(14)?,
                 },
             })
         })
@@ -259,10 +254,10 @@ fn migrate(conn: &mut Connection, path: &str) -> Result<(), String> {
     let version: i64 = conn
         .query_row("PRAGMA user_version", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;
-    if version == 3 {
+    if version == 4 {
         return Ok(());
     }
-    if version > 3 {
+    if version > 4 {
         return Err("Esta biblioteca requiere una versión más reciente de Anaquel.".into());
     }
     let tx = conn
@@ -271,7 +266,7 @@ fn migrate(conn: &mut Connection, path: &str) -> Result<(), String> {
     let version: i64 = tx
         .query_row("PRAGMA user_version", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;
-    if version == 3 {
+    if version == 4 {
         return tx.commit().map_err(|e| e.to_string());
     }
     tx.execute_batch(
@@ -292,8 +287,15 @@ fn migrate(conn: &mut Connection, path: &str) -> Result<(), String> {
             .map_err(|e| e.to_string())?;
         create_tables(&tx)?;
         insert_books(&tx, &books)?;
-    } else if has_column(&tx, "books", "editorial")? {
-        // Las dos tablas normalizadas anteriores usan notas 1–5.
+    } else if has_column(&tx, "books", "editorial")?
+        || has_column(&tx, "books", "duracion_min")?
+    {
+        // El esquema anterior 1–5 convierte las notas; el esquema 3 ya usa 1–10.
+        let rating_expr = if version == 3 {
+            "CASE WHEN valoracion IS NULL THEN NULL ELSE max(1,min(10,valoracion)) END"
+        } else {
+            "CASE WHEN valoracion IS NULL THEN NULL ELSE max(1,min(10,valoracion*2)) END"
+        };
         for table in ["books", "audiobooks"] {
             tx.execute_batch(&format!("ALTER TABLE {table} RENAME TO old_{table};"))
                 .map_err(|e| e.to_string())?;
@@ -303,8 +305,8 @@ fn migrate(conn: &mut Connection, path: &str) -> Result<(), String> {
             tx.execute_batch(&format!("INSERT INTO {table} ({COLUMNS})
                 SELECT id, position, titulo, autor, isbn, portada,
                     CASE WHEN estado IN ('quiero_leer','pospuesto') THEN 'pendiente' ELSE estado END,
-                    '{kind}', CASE WHEN valoracion IS NULL THEN NULL ELSE max(1,min(10,valoracion*2)) END,
-                    comprar_fisico, relectura, duracion_min, comentarios, anadido, inicio_lectura, fin_lectura
+                    '{kind}', {rating_expr},
+                    comprar_fisico, relectura, comentarios, anadido, inicio_lectura, fin_lectura
                 FROM old_{table};
                 DROP TABLE old_{table};")).map_err(|e| e.to_string())?;
         }
@@ -326,7 +328,7 @@ fn migrate(conn: &mut Connection, path: &str) -> Result<(), String> {
         }
     }
     tx.execute_batch(
-        "INSERT OR REPLACE INTO metadata VALUES ('json_migrated','1'); PRAGMA user_version=3;",
+        "INSERT OR REPLACE INTO metadata VALUES ('json_migrated','1'); PRAGMA user_version=4;",
     )
     .map_err(|e| e.to_string())?;
     tx.commit().map_err(|e| e.to_string())
@@ -343,7 +345,7 @@ fn open_database(path: &str) -> Result<Connection, String> {
     let version: i64 = conn
         .query_row("PRAGMA user_version", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;
-    if existed && version < 3 {
+    if existed && version < 4 {
         let backup = dir.join("backups");
         fs::create_dir_all(&backup).map_err(|e| e.to_string())?;
         let backup = backup.join(format!(
@@ -399,7 +401,6 @@ mod tests {
             valoracion: Some(7),
             comprar_fisico: audio,
             relectura: !audio,
-            duracion_min: if audio { Some(123) } else { None },
             comentarios: Some("Comentario".into()),
             fechas: Fechas {
                 anadido: "2026-09-30".into(),
@@ -533,6 +534,7 @@ mod tests {
         convert_ratings(std::slice::from_mut(&mut b), false);
         assert_eq!(b.valoracion, Some(9));
     }
+
     struct TempVault(std::path::PathBuf);
     impl TempVault {
         fn new() -> Self {

@@ -70,7 +70,6 @@ export function AddBookDialog({
       valoracion: estado === "leido" ? valoracion : null,
       comprar_fisico: false,
       relectura: estado === "leido" ? relectura : false,
-      duracion_min: null,
       comentarios: null,
       fechas: {
         añadido: hoy,

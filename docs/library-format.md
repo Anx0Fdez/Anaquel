@@ -13,7 +13,6 @@ Cada dato se lee y escribe en su columna; no se guardan documentos JSON en SQLit
 | formato | libro en books; audiolibro en audiobooks |
 | valoracion | Entero entre 1 y 10; NULL significa sin valorar |
 | comprar_fisico, relectura | Indicadores booleanos |
-| duracion_min | Duración de audiolibros en minutos; opcional |
 | comentarios | Texto libre opcional |
 | anadido, inicio_lectura, fin_lectura | Fechas YYYY-MM-DD; inicio y fin opcionales |
 
@@ -24,7 +23,7 @@ separadas para libros y audiolibros con puntuación numérica.
 
 ## Migración y respaldo
 
-El esquema simplificado usa `PRAGMA user_version = 3`. La migración es transaccional:
+El esquema simplificado usa `PRAGMA user_version = 4`. La migración es transaccional:
 convierte los datos y actualiza su versión en la misma operación.
 Antes de migrar una base existente se crea un respaldo SQLite consistente en
 `.ananquel/backups/before-simplification-<marca temporal>.sqlite3`.
@@ -33,6 +32,8 @@ Antes de migrar una base existente se crea un respaldo SQLite consistente en
 - Los estados antiguos «quiero_leer» y «pospuesto» pasan a «pendiente».
 - Los tipos antiguos físico, ebook y comprar pasan a libro.
 - Se eliminan del esquema activo saga, favorito, editorial y páginas.
+- Se elimina la duración del modelo y de SQLite; el dato histórico permanece en la copia de respaldo.
+- Al migrar del esquema 3, las valoraciones 1–10 se conservan sin volver a multiplicarse.
 - Se admite importar la primera versión SQLite que guardaba una columna JSON.
 - Los JSON anteriores se importan una sola vez y se conservan como respaldo.
   El marcador histórico `ratingMigrated` permite distinguir su escala 1–5 de la escala antigua 0–10.
@@ -54,7 +55,7 @@ Las pruebas cubren migración JSON y SQLite, conversión de notas una sola vez,
 guardado, cambio de tipo, borrado y reversión de una migración fallida.
 
 Si falla la carga o no coinciden los registros, cerrar la app y conservar una copia
-de todo el anaquel antes de intentar recuperar nada. No abrir la base de esquema 3
+de todo el anaquel antes de intentar recuperar nada. No abrir la base de esquema 4
 con versiones antiguas. Recuperar el respaldo anterior en una carpeta nueva y usar
 la versión compatible con ese respaldo. La versión 0.4.0 publicada usaba JSON:
 volver a ella requiere los JSON históricos y no incluirá las ediciones posteriores

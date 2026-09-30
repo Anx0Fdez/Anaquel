@@ -20,7 +20,6 @@ export interface Book {
   valoracion: number | null; // 1-10, puntuación entera
   comprar_fisico: boolean; // solo relevante si formato=audiolibro y estado=leido
   relectura: boolean; // marcar para volver a leerlo en el futuro
-  duracion_min: number | null; // solo relevante si formato == audiolibro
   comentarios: string | null;
   fechas: Fechas;
 }
