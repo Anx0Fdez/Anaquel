@@ -1,4 +1,5 @@
-import { SelectField } from "./SelectField";
+import { DropdownSelect } from "./DropdownSelect";
+import "./RatingField.css";
 
 interface RatingFieldProps {
   value: number | null;
@@ -15,11 +16,15 @@ const options = [
 
 export function RatingField({ value, onChange }: RatingFieldProps) {
   return (
-    <SelectField
-      label="Valoración"
-      value={value == null ? "" : String(value)}
-      options={options}
-      onChange={(nextValue) => onChange(nextValue === "" ? null : Number(nextValue))}
-    />
+    <div className="rating-field">
+      <DropdownSelect
+        ariaLabel="Valoración"
+        triggerClassName="rating-field-trigger"
+        menuClassName="rating-field-menu"
+        value={value == null ? "—" : String(value)}
+        options={options}
+        onChange={(nextValue) => onChange(nextValue === "" ? null : Number(nextValue))}
+      />
+    </div>
   );
 }

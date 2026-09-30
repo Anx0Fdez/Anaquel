@@ -14,6 +14,7 @@ interface DropdownSelectProps {
   onChange: (value: string) => void;
   triggerClassName?: string;
   menuClassName?: string;
+  ariaLabel?: string;
   align?: "left" | "right";
   direction?: "down" | "up";
 }
@@ -24,6 +25,7 @@ export function DropdownSelect({
   onChange,
   triggerClassName,
   menuClassName,
+  ariaLabel,
   align = "left",
   direction = "down",
 }: DropdownSelectProps) {
@@ -39,6 +41,7 @@ export function DropdownSelect({
         type="button"
         className={`dropdown-select-trigger${triggerClassName ? ` ${triggerClassName}` : ""}`}
         onClick={() => setOpen((o) => !o)}
+        aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
