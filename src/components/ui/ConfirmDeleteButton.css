@@ -13,7 +13,7 @@
 
 .confirm-delete-trigger:hover {
   background: var(--bg-hover);
-  color: var(--status-quiero_leer);
+  color: var(--status-pendiente);
 }
 
 .confirm-delete-trigger--md {

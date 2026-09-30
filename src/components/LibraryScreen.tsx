@@ -13,7 +13,7 @@ import type { VaultInfo } from "../types/vault";
 import type { NavFilter } from "../state/filters";
 import { matchesFilter, matchesSearch, readingYear } from "../state/filters";
 import type { SortKey } from "../lib/sort";
-import { sortBooks } from "../lib/sort";
+import { normalizeSortKey, sortBooks } from "../lib/sort";
 
 interface LibraryScreenProps {
   vault: VaultInfo;
@@ -28,7 +28,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
   const [viewMode, setViewMode] = useState<ViewMode>(vault.config.lastView);
   const [navFilter, setNavFilter] = useState<NavFilter>({ kind: "all" });
   const [query, setQuery] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>((vault.config.defaultSortKey as SortKey | null) ?? "titulo");
+  const [sortKey, setSortKey] = useState<SortKey>(normalizeSortKey(vault.config.defaultSortKey));
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
   const [libraryKind, setLibraryKind] = useState<LibraryKind>(
     (vault.config.lastLibraryKind as LibraryKind | null) ?? "libros",
@@ -218,8 +218,8 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
     const total = scopedBooks.length;
     const leidos = scopedBooks.filter((b) => b.estado === "leido").length;
     const enProgreso = scopedBooks.filter((b) => b.estado === "leyendo").length;
-    const quieroLeer = scopedBooks.filter((b) => b.estado === "quiero_leer").length;
-    return { total, leidos, enProgreso, quieroLeer };
+    const pendientes = scopedBooks.filter((b) => b.estado === "pendiente").length;
+    return { total, leidos, enProgreso, pendientes };
   }, [scopedBooks]);
 
   const visibleBooks = useMemo(

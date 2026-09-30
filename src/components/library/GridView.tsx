@@ -1,12 +1,12 @@
 import { useMemo } from "react";
-import { Heart, RotateCcw, ShoppingBag } from "lucide-react";
+import { RotateCcw, ShoppingBag } from "lucide-react";
 import type { Book, GridCardSize, LibraryKind } from "../../types/book";
 import type { SortKey } from "../../lib/sort";
 import type { BookGroup, GroupField } from "../../lib/grouping";
 import { groupBooks } from "../../lib/grouping";
 import { StatusPill } from "./StatusPill";
 import { BookCoverArt } from "./BookCoverArt";
-import { StarRatingDisplay } from "../ui/StarRatingDisplay";
+import { RatingDisplay } from "../ui/RatingDisplay";
 import "./GridView.css";
 
 interface GridViewProps {
@@ -41,7 +41,6 @@ function BookSpine({
     >
       <div className="book-spine-cover">
         <BookCoverArt book={book} vaultPath={vaultPath} />
-        {book.favorito && <Heart className="book-spine-fav" size={13} fill="currentColor" />}
         {book.formato !== "audiolibro" && book.relectura && (
           <RotateCcw className="book-spine-cover-icon" size={13} strokeWidth={2}>
             <title>Marcado para relectura</title>
@@ -61,7 +60,7 @@ function BookSpine({
           <StatusPill estado={book.estado} audio={book.formato === "audiolibro"} size="sm" />
           {book.valoracion != null && (
             <div className="book-spine-meta-right">
-              <StarRatingDisplay value={book.valoracion} size={9} />
+              <RatingDisplay value={book.valoracion} size={9} />
             </div>
           )}
         </div>
@@ -70,7 +69,7 @@ function BookSpine({
   );
 }
 
-const GROUPABLE_FIELDS: SortKey[] = ["autor", "saga", "estado"];
+const GROUPABLE_FIELDS: SortKey[] = ["autor", "estado"];
 
 export function GridView({
   vaultPath,

@@ -14,10 +14,8 @@
   --status-leyendo-bg: rgba(76, 134, 224, 0.16);
   --status-leido: #4fa876;
   --status-leido-bg: rgba(79, 168, 118, 0.16);
-  --status-quiero_leer: #d99a3f;
-  --status-quiero_leer-bg: rgba(217, 154, 63, 0.16);
-  --status-pospuesto: #7c93a8;
-  --status-pospuesto-bg: rgba(124, 147, 168, 0.18);
+  --status-pendiente: #d99a3f;
+  --status-pendiente-bg: rgba(217, 154, 63, 0.16);
   --status-audiolibro: #9c7fe0;
   --status-audiolibro-bg: rgba(156, 127, 224, 0.16);
   --status-abandonado: #8a8378;
@@ -68,10 +66,8 @@
   --status-leyendo-bg: rgba(55, 104, 194, 0.12);
   --status-leido: #2f8a5c;
   --status-leido-bg: rgba(47, 138, 92, 0.12);
-  --status-quiero_leer: #b47620;
-  --status-quiero_leer-bg: rgba(180, 118, 32, 0.14);
-  --status-pospuesto: #5a7187;
-  --status-pospuesto-bg: rgba(90, 113, 135, 0.14);
+  --status-pendiente: #b47620;
+  --status-pendiente-bg: rgba(180, 118, 32, 0.14);
   --status-audiolibro: #7c5cca;
   --status-audiolibro-bg: rgba(124, 92, 202, 0.14);
   --status-abandonado: #6e675a;

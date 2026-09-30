@@ -21,19 +21,15 @@
   background: var(--status-leyendo-bg);
 }
 
-.status-pill--pospuesto {
-  color: var(--status-pospuesto);
-  background: var(--status-pospuesto-bg);
-}
 
 .status-pill--leido {
   color: var(--status-leido);
   background: var(--status-leido-bg);
 }
 
-.status-pill--quiero_leer {
-  color: var(--status-quiero_leer);
-  background: var(--status-quiero_leer-bg);
+.status-pill--pendiente {
+  color: var(--status-pendiente);
+  background: var(--status-pendiente-bg);
 }
 
 .status-pill--audiolibro {

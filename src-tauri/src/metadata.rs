@@ -9,8 +9,6 @@ use serde_json::Value;
 pub struct BookMetadata {
     pub titulo: Option<String>,
     pub autor: Option<String>,
-    pub editorial: Option<String>,
-    pub paginas_totales: Option<u32>,
     pub portada: Option<String>,
 }
 
@@ -38,7 +36,11 @@ fn digits_only(s: &str) -> Option<Vec<u32>> {
 /// Dígito de control ISBN-10 (pesos 10..2, mod 11) para los primeros 9
 /// dígitos. El resto 10 se representa como 'X', tal como manda el estándar.
 fn isbn10_check_digit(digits9: &[u32]) -> char {
-    let sum: u32 = digits9.iter().enumerate().map(|(i, d)| d * (10 - i as u32)).sum();
+    let sum: u32 = digits9
+        .iter()
+        .enumerate()
+        .map(|(i, d)| d * (10 - i as u32))
+        .sum();
     match (11 - (sum % 11)) % 11 {
         10 => 'X',
         n => std::char::from_digit(n, 10).unwrap_or('0'),
@@ -92,8 +94,12 @@ fn first_str(value: &Value, key: &str) -> Option<String> {
     value.get(key).and_then(Value::as_str).map(String::from)
 }
 
-async fn fetch_open_library(client: &reqwest::Client, isbn: &str) -> Option<(BookMetadata, Option<String>)> {
-    let url = format!("https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&jscmd=data&format=json");
+async fn fetch_open_library(
+    client: &reqwest::Client,
+    isbn: &str,
+) -> Option<(BookMetadata, Option<String>)> {
+    let url =
+        format!("https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&jscmd=data&format=json");
     let res = client.get(&url).send().await.ok()?;
     if !res.status().is_success() {
         return None;
@@ -112,19 +118,19 @@ async fn fetch_open_library(client: &reqwest::Client, isbn: &str) -> Option<(Boo
                 .collect()
         })
         .unwrap_or_default();
-    let autor = if autores.is_empty() { None } else { Some(autores.remove(0)) };
-
-    let editorial = entry
-        .get("publishers")
-        .and_then(Value::as_array)
-        .and_then(|arr| arr.first())
-        .and_then(|p| first_str(p, "name"));
-
-    let paginas_totales = entry.get("number_of_pages").and_then(Value::as_u64).map(|n| n as u32);
+    let autor = if autores.is_empty() {
+        None
+    } else {
+        Some(autores.remove(0))
+    };
 
     let cover_url = entry
         .get("cover")
-        .and_then(|c| c.get("large").or_else(|| c.get("medium")).or_else(|| c.get("small")))
+        .and_then(|c| {
+            c.get("large")
+                .or_else(|| c.get("medium"))
+                .or_else(|| c.get("small"))
+        })
         .and_then(Value::as_str)
         .map(String::from);
 
@@ -135,8 +141,6 @@ async fn fetch_open_library(client: &reqwest::Client, isbn: &str) -> Option<(Boo
     let meta = BookMetadata {
         titulo,
         autor,
-        editorial,
-        paginas_totales,
         portada: None,
     };
 
@@ -165,18 +169,31 @@ async fn fetch_google_books(
     let mut autores: Vec<String> = info
         .get("authors")
         .and_then(Value::as_array)
-        .map(|arr| arr.iter().filter_map(Value::as_str).map(String::from).collect())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(Value::as_str)
+                .map(String::from)
+                .collect()
+        })
         .unwrap_or_default();
-    let autor = if autores.is_empty() { None } else { Some(autores.remove(0)) };
-
-    let editorial = first_str(info, "publisher");
-    let paginas_totales = info.get("pageCount").and_then(Value::as_u64).map(|n| n as u32);
+    let autor = if autores.is_empty() {
+        None
+    } else {
+        Some(autores.remove(0))
+    };
 
     let cover_url = info
         .get("imageLinks")
-        .and_then(|links| links.get("thumbnail").or_else(|| links.get("smallThumbnail")))
+        .and_then(|links| {
+            links
+                .get("thumbnail")
+                .or_else(|| links.get("smallThumbnail"))
+        })
         .and_then(Value::as_str)
-        .map(|u| u.replacen("http://", "https://", 1).replace("&edge=curl", ""));
+        .map(|u| {
+            u.replacen("http://", "https://", 1)
+                .replace("&edge=curl", "")
+        });
 
     if titulo.is_none() && autor.is_none() && cover_url.is_none() {
         return None;
@@ -185,8 +202,6 @@ async fn fetch_google_books(
     let meta = BookMetadata {
         titulo,
         autor,
-        editorial,
-        paginas_totales,
         portada: None,
     };
 
@@ -196,7 +211,12 @@ async fn fetch_google_books(
 /// Descarga la portada y la guarda en `.ananquel/covers/{isbn}.{ext}`. Un
 /// fallo aquí (red, formato inesperado, IO) nunca debe tirar todo el lookup:
 /// se traga el error y devuelve `None`, dejando `portada` en null.
-async fn download_cover(client: &reqwest::Client, vault_path: &str, isbn: &str, url: &str) -> Option<String> {
+async fn download_cover(
+    client: &reqwest::Client,
+    vault_path: &str,
+    isbn: &str,
+    url: &str,
+) -> Option<String> {
     let res = client.get(url).send().await.ok()?;
     if !res.status().is_success() {
         return None;
@@ -304,7 +324,8 @@ fn delete_old_cover(vault_path: &str, portada: &str) {
     let covers_dir = ananquel_dir.join("covers");
     let candidate = ananquel_dir.join(portada);
 
-    let (Ok(covers_dir), Ok(candidate)) = (covers_dir.canonicalize(), candidate.canonicalize()) else {
+    let (Ok(covers_dir), Ok(candidate)) = (covers_dir.canonicalize(), candidate.canonicalize())
+    else {
         return;
     };
     if candidate.starts_with(&covers_dir) {

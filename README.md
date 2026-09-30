@@ -10,21 +10,23 @@
 
 ## Descripción
 
-Anaquel es una aplicación de escritorio (Windows y Linux) para catalogar tu biblioteca personal de libros y audiolibros. Toda tu información vive en texto plano dentro de una carpeta que tú eliges — un **anaquel** — de la misma forma en que un vault de Obsidian guarda tus notas: sin cuenta, sin sincronización obligatoria en la nube y sin ningún servidor de por medio. Si quieres sincronizarla entre dispositivos, basta con meter esa carpeta en Dropbox, Syncthing o Git, como harías con cualquier otra carpeta de archivos.
+Anaquel es una aplicación de escritorio (Windows y Linux) para catalogar tu biblioteca personal de libros y audiolibros. Tu biblioteca vive en SQLite dentro de una carpeta que tú eliges — un **anaquel** — de la misma forma en que un vault de Obsidian guarda tus notas: sin cuenta, sin sincronización obligatoria en la nube y sin ningún servidor de por medio. Para copiar o sincronizar la biblioteca, cierra antes la aplicación en ambos dispositivos y copia la carpeta completa.
 
 ## Características principales
 
-- **Anaquel = carpeta.** Cualquier carpeta de tu sistema de archivos puede convertirse en tu biblioteca; los datos se guardan como JSON legible en texto plano.
-- **Libros y audiolibros como dos bibliotecas independientes**, con estados de lectura adaptados a cada una (Leyendo/Escuchando, Quiero leer/Quiero escuchar...) y su propio diálogo de "Añadir".
-- **Autocompletado por ISBN**: busca en Open Library y, si no encuentra nada, en Google Books, probando tanto el ISBN-13 como el ISBN-10 de la misma edición. Rellena título, autor, editorial, páginas y portada sin pisar lo que ya hayas escrito a mano.
-- **Autocompletado de Autor, Editorial y Colección/saga**: sugiere, mientras escribes, valores ya usados en el resto de tu biblioteca (navegable con flechas y Enter), sin dejar de admitir texto libre.
+- **Anaquel = carpeta.** Cualquier carpeta de tu sistema de archivos puede convertirse en tu biblioteca; los datos se guardan en SQLite dentro de `.ananquel/library.sqlite3`. Los JSON anteriores se conservan como respaldo en `.ananquel/backups/` durante la migración.
+- **Libros y audiolibros como dos bibliotecas independientes**, con estados de lectura adaptados a cada una (Leyendo/Escuchando, Pendiente...) y su propio diálogo de "Añadir".
+- **Autocompletado por ISBN**: busca en Open Library y, si no encuentra nada, en Google Books, probando tanto el ISBN-13 como el ISBN-10 de la misma edición. Rellena título, autor y portada sin pisar lo que ya hayas escrito a mano.
+- **Autocompletado de autor**: sugiere, mientras escribes, valores ya usados en el resto de tu biblioteca (navegable con flechas y Enter), sin dejar de admitir texto libre.
 - **Aviso de posibles duplicados**: al añadir un libro, avisa si ya existe uno con el mismo ISBN o un título y autor muy parecidos.
 - **Portadas**: descargadas automáticamente por ISBN o añadidas a mano desde una imagen local (la anterior se borra sola al reemplazarla).
-- **Estados de lectura completos**: quiero leer, leyendo, pospuesto, leído, abandonado — con marcas adicionales de relectura y de "comprar en físico" para audiolibros ya escuchados, y un formato "Comprar" para libros que aún no tienes.
+- **Estados de lectura**: pendiente, leyendo/escuchando, leído/escuchado y abandonado, con relectura y compra en físico para audiolibros escuchados.
+- **Valoración numérica de 1 a 10**, con opción de dejar el libro sin valorar.
+- **Dos tipos**: libro y audiolibro.
 - **Comentarios libres por libro**, editados desde una ventana flotante propia en la ficha de detalle.
-- **Búsqueda** (`Ctrl+F`) por título, autor o saga, y **ordenación** por título, autor, saga, valoración, estado, favoritos o páginas/duración.
-- **Agrupación automática en secciones** al ordenar por autor, saga o estado, en cuadrícula y en tabla.
-- **Vistas de cuadrícula (tres tamaños) y de tabla**, con filtros por estado, favoritos o año de lectura/escucha.
+- **Búsqueda** (`Ctrl+F`) por título o autor, y **ordenación** por título, autor, valoración o estado.
+- **Agrupación automática en secciones** al ordenar por autor o estado, en cuadrícula y en tabla.
+- **Vistas de cuadrícula (tres tamaños) y de tabla**, con filtros por estado o año de lectura/escucha.
 - **Exportación a Excel** (`.xlsx`) con libros y audiolibros en hojas separadas.
 - **Tema claro/oscuro y color de acento personalizable**, con selector de fechas y de opciones diseñados a medida en vez de controles nativos genéricos.
 - **Multi-dispositivo sin backend**: el mismo anaquel abierto en otro ordenador recuerda el tema, la vista y el resto de preferencias.
@@ -74,7 +76,7 @@ Genera los instaladores nativos para tu plataforma en `src-tauri/target/release/
 
 - **Frontend**: React 19, TypeScript, Vite
 - **Backend/nativo**: [Tauri](https://tauri.app/) 2, Rust
-- **Datos**: `serde` / `serde_json` para leer y escribir los JSON del anaquel
+- **Datos**: SQLite (`rusqlite`) como fuente principal; `serde_json` para importar y conservar copias de seguridad compatibles con versiones anteriores
 - **Metadatos por ISBN**: `reqwest` contra las APIs de Open Library y Google Books
 - **Exportación**: `rust_xlsxwriter`
 - **Iconos**: [lucide-react](https://lucide.dev/)
@@ -91,7 +93,7 @@ Anaquel/
 │   └── types/                 # Tipos compartidos con el backend de Rust
 ├── src-tauri/               # Backend nativo
 │   └── src/
-│       ├── library.rs        # Lectura/escritura de mybooks.json y myaudiobooks.json
+│       ├── library.rs        # SQLite y migración desde mybooks.json/myaudiobooks.json
 │       ├── vault.rs           # Gestión del anaquel y su config.json
 │       ├── metadata.rs        # Búsqueda por ISBN y portadas
 │       ├── export.rs          # Exportación a Excel
@@ -102,7 +104,7 @@ Anaquel/
 
 ## Configuración
 
-Cada anaquel guarda sus preferencias (tema, color de acento, tamaño de ventana, orden por defecto, API key de Google Books...) en `.ananquel/config.json`, dentro de la propia carpeta del anaquel — viajan con él si lo mueves o lo sincronizas a otro dispositivo. El formato completo de los datos de la biblioteca está documentado en [`docs/library-format.md`](docs/library-format.md).
+Cada anaquel guarda sus preferencias (tema, color de acento, tamaño de ventana, orden por defecto, API key de Google Books...) en `.ananquel/config.json`, dentro de la propia carpeta del anaquel. La biblioteca vive en `.ananquel/library.sqlite3`; al migrar desde una versión anterior se conserva una copia en `.ananquel/backups/` y no se eliminan los JSON originales.
 
 ## API key de Google Books
 
@@ -134,7 +136,7 @@ Cómo usarla en Anaquel:
 
 ## Roadmap
 
-- [ ] Colecciones inteligentes (filtros guardados más allá de favoritos/año/estado, p. ej. "pendientes de relectura")
+- [ ] Colecciones inteligentes (filtros guardados más allá de año/estado, p. ej. "pendientes de relectura")
 - [ ] Importar biblioteca desde Goodreads/CSV
 
 ## Contribuir

@@ -14,7 +14,7 @@ interface AutocompleteTextFieldProps {
 }
 
 /** Como TextField, pero con un desplegable de sugerencias tomadas de `options`
- * (valores ya usados en la biblioteca, p. ej. sagas, autores o editoriales)
+ * (valores ya usados en la biblioteca, p. ej. autores)
  * mientras se escribe. Sigue permitiendo texto libre: elegir una sugerencia
  * solo rellena el campo, no restringe lo que se puede escribir. */
 export function AutocompleteTextField({

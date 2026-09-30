@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Barcode, Building2, Clock, Hash, Heart, ImagePlus, Layers, LibraryBig, Sparkles } from "lucide-react";
+import { Barcode, Clock, ImagePlus, LibraryBig, Sparkles } from "lucide-react";
 import type { Book, FormatoLibro } from "../../../../types/book";
 import { FORMATO_LABEL } from "../../../../types/book";
 import { DetailSection } from "../DetailSection";
@@ -7,7 +7,7 @@ import { TextField } from "../../../ui/fields/TextField";
 import { SelectField } from "../../../ui/fields/SelectField";
 import { AutocompleteTextField } from "../../../ui/fields/AutocompleteTextField";
 import { BookCoverArt } from "../../BookCoverArt";
-import { StarRatingField } from "../../../ui/fields/StarRatingField";
+import { RatingField } from "../../../ui/fields/RatingField";
 import { useIsbnLookup } from "../../../../lib/useIsbnLookup";
 import { applyMetadata, pickCoverFile, setManualCover } from "../../../../lib/metadata";
 import { invalidateCoverCache } from "../../../../lib/useCoverImage";
@@ -20,7 +20,7 @@ interface InfoGeneralSectionProps {
   onChange: (book: Book) => void;
 }
 
-const FORMATOS: FormatoLibro[] = ["fisico", "ebook", "comprar", "audiolibro"];
+const FORMATOS: FormatoLibro[] = ["libro", "audiolibro"];
 const FORMATO_OPTIONS = FORMATOS.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
 
 /** Valores distintos (sin contar mayúsculas) de `values`, en orden de primera aparición. */
@@ -44,10 +44,8 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
   const { status, result } = useIsbnLookup(vaultPath, isbnDraft, googleBooksApiKey);
 
   // Valores ya usados en la biblioteca, para sugerirlos como autocompletado
-  // al escribir en los campos de saga, autor y editorial.
-  const sagaOptions = useMemo(() => distinctValues(allBooks.map((b) => b.saga?.nombre)), [allBooks]);
+  // al escribir en el campo de autor.
   const autorOptions = useMemo(() => distinctValues(allBooks.map((b) => b.autor)), [allBooks]);
-  const editorialOptions = useMemo(() => distinctValues(allBooks.map((b) => b.editorial)), [allBooks]);
 
   useEffect(() => {
     if (result) onChange(applyMetadata(book, result));
@@ -71,16 +69,6 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
       <div className="book-header detail-field-wide">
         <div className="book-header-cover">
           <BookCoverArt book={book} vaultPath={vaultPath} />
-          <button
-            type="button"
-            className="book-header-fav"
-            onClick={() => onChange({ ...book, favorito: !book.favorito })}
-            aria-pressed={book.favorito}
-            aria-label={book.favorito ? "Quitar de favoritos" : "Marcar como favorito"}
-            title={book.favorito ? "Quitar de favoritos" : "Marcar como favorito"}
-          >
-            <Heart size={15} fill={book.favorito ? "currentColor" : "none"} />
-          </button>
           <button
             type="button"
             className="book-header-upload"
@@ -108,7 +96,7 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
             hideLabel
             inputClassName="book-header-author-input"
           />
-          <StarRatingField
+          <RatingField
             value={book.valoracion}
             onChange={(v) => onChange({ ...book, valoracion: v })}
           />
@@ -118,29 +106,19 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
           <div className="fact-row">
             <LibraryBig size={14} strokeWidth={2} />
             <SelectField
-              label="Formato"
+              label="Tipo"
               value={book.formato}
               options={FORMATO_OPTIONS}
               onChange={(v) =>
                 onChange({
                   ...book,
                   formato: v as FormatoLibro,
-                  paginas_totales: v === "audiolibro" ? null : book.paginas_totales,
                   duracion_min: v === "audiolibro" ? book.duracion_min : null,
                 })
               }
             />
           </div>
-          <div className="fact-row">
-            <Building2 size={14} strokeWidth={2} />
-            <AutocompleteTextField
-              label="Editorial"
-              value={book.editorial ?? ""}
-              options={editorialOptions}
-              onChange={(v) => onChange({ ...book, editorial: v.trim() || null })}
-            />
-          </div>
-          {book.formato === "audiolibro" ? (
+          {book.formato === "audiolibro" && (
             <div className="fact-row">
               <Clock size={14} strokeWidth={2} />
               <TextField
@@ -150,19 +128,6 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
                 onChange={(v) => {
                   const n = v.trim() === "" ? null : Number(v);
                   onChange({ ...book, duracion_min: n != null && !Number.isNaN(n) ? n : null });
-                }}
-              />
-            </div>
-          ) : (
-            <div className="fact-row">
-              <Hash size={14} strokeWidth={2} />
-              <TextField
-                label="Páginas"
-                type="number"
-                value={book.paginas_totales != null ? String(book.paginas_totales) : ""}
-                onChange={(v) => {
-                  const n = v.trim() === "" ? null : Number(v);
-                  onChange({ ...book, paginas_totales: n != null && !Number.isNaN(n) ? n : null });
                 }}
               />
             </div>
@@ -179,61 +144,6 @@ export function InfoGeneralSection({ book, vaultPath, googleBooksApiKey, allBook
             </div>
             {status === "loading" && <p className="fact-row-hint">Buscando…</p>}
             {status === "not_found" && <p className="fact-row-hint">No se ha encontrado ningún libro con ese ISBN</p>}
-          </div>
-          <div className="fact-row-group">
-            <div className="fact-row">
-              <Layers size={14} strokeWidth={2} />
-              <AutocompleteTextField
-                label="Colección"
-                value={book.saga?.nombre ?? ""}
-                options={sagaOptions}
-                onChange={(v) => {
-                  const nombre = v.trim();
-                  if (!nombre) {
-                    onChange({ ...book, saga: null });
-                    return;
-                  }
-                  onChange({
-                    ...book,
-                    saga: { nombre, numero: book.saga?.numero ?? 1, total_libros: book.saga?.total_libros ?? null },
-                  });
-                }}
-              />
-              {book.saga && (
-                <div className="saga-subfields">
-                  <span className="saga-subfields-label">Nº</span>
-                  <TextField
-                    label="Número en la saga"
-                    type="number"
-                    value={String(book.saga.numero)}
-                    onChange={(v) => {
-                      const n = Number(v);
-                      if (!book.saga) return;
-                      onChange({ ...book, saga: { ...book.saga, numero: Number.isNaN(n) ? 1 : n } });
-                    }}
-                    hideLabel
-                    inputClassName="saga-subfield-input"
-                  />
-                  <span className="saga-subfields-sep">de</span>
-                  <TextField
-                    label="Total de libros en la saga"
-                    type="number"
-                    value={book.saga.total_libros != null ? String(book.saga.total_libros) : ""}
-                    onChange={(v) => {
-                      const n = v.trim() === "" ? null : Number(v);
-                      if (!book.saga) return;
-                      onChange({
-                        ...book,
-                        saga: { ...book.saga, total_libros: n != null && !Number.isNaN(n) ? n : null },
-                      });
-                    }}
-                    hideLabel
-                    inputClassName="saga-subfield-input"
-                    placeholder="?"
-                  />
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>

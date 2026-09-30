@@ -25,7 +25,7 @@ const VIEW_MODES: { mode: ViewMode; icon: typeof LayoutGrid; label: string }[] =
   { mode: "table", icon: Table2, label: "Vista de tabla" },
 ];
 
-const SORT_KEYS: SortKey[] = ["titulo", "autor", "saga", "valoracion", "estado", "favoritos", "paginas"];
+const SORT_KEYS: SortKey[] = ["titulo", "autor", "valoracion", "estado"];
 
 const CARD_SIZES: { size: GridCardSize; icon: typeof Square }[] = [
   { size: "grande", icon: Square },
@@ -46,8 +46,7 @@ export function Topbar({
   onAddBook,
 }: TopbarProps) {
   const searchRef = useRef<HTMLInputElement>(null);
-  const audio = libraryKind === "audiolibros";
-  const sortOptions = SORT_KEYS.map((key) => ({ value: key, label: sortLabel(key, audio) }));
+  const sortOptions = SORT_KEYS.map((key) => ({ value: key, label: sortLabel(key) }));
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -68,7 +67,7 @@ export function Topbar({
           ref={searchRef}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Buscar por título, autor o saga..."
+          placeholder="Buscar por título o autor..."
         />
         <kbd className="topbar-search-kbd">Ctrl+F</kbd>
       </div>

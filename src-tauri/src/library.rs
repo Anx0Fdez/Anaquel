@@ -1,27 +1,23 @@
-use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
+use rusqlite::{params, Connection, OptionalExtension, TransactionBehavior};
 use serde::{Deserialize, Serialize};
 
 const ANANQUEL_DIR: &str = ".ananquel";
+const DATABASE_FILE: &str = "library.sqlite3";
 const LIBRARY_FILE: &str = "mybooks.json";
-const LIBRARY_FILE_LEGACY: &str = "library.json";
 const AUDIOBOOKS_FILE: &str = "myaudiobooks.json";
-const AUDIOBOOKS_FILE_LEGACY: &str = "audiobooks.json";
+const LEGACY_LIBRARY_FILE: &str = "library.json";
+const LEGACY_AUDIOBOOKS_FILE: &str = "audiobooks.json";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum EstadoLectura {
-    QuieroLeer,
-    Pospuesto,
+    #[serde(alias = "quiero_leer", alias = "pospuesto")]
+    Pendiente,
     Leido,
     Abandonado,
-    /// `#[serde(other)]` hace de red de seguridad al leer un vault antiguo:
-    /// el estado "audiolibro" (el filtro rápido de "lo que estoy escuchando
-    /// ahora", de antes de separar Libros/Audiolibros en dos bibliotecas) ya
-    /// no es un estado válido, así que cualquier valor que no reconozcamos
-    /// cae aquí en vez de que falle la carga de toda la biblioteca.
     #[serde(other)]
     Leyendo,
 }
@@ -29,17 +25,9 @@ pub enum EstadoLectura {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum FormatoLibro {
-    Fisico,
-    Ebook,
-    Comprar,
+    #[serde(alias = "fisico", alias = "ebook", alias = "comprar")]
+    Libro,
     Audiolibro,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Saga {
-    pub nombre: String,
-    pub numero: u32,
-    pub total_libros: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,41 +47,17 @@ pub struct Book {
     pub portada: Option<String>,
     pub estado: EstadoLectura,
     pub formato: FormatoLibro,
-    #[serde(default)]
-    pub editorial: Option<String>,
-    /// 1-5 estrellas enteras (sin medias). El deserializador es permisivo
-    /// (acepta números con o sin parte decimal) porque los vaults creados
-    /// antes de este cambio guardaban la escala antigua (0-10, en enteros,
-    /// medio punto por estrella) con este mismo campo — `migrate_valoraciones`
-    /// se encarga de convertir esos valores la primera vez que se abre el
-    /// vault; sin este deserializador permisivo, cargar un vault antiguo
-    /// fallaría directamente al leer un valor como `9.0`.
     #[serde(default, deserialize_with = "deserialize_valoracion")]
     pub valoracion: Option<u8>,
     #[serde(default)]
-    pub favorito: bool,
-    /// Solo tiene sentido cuando `formato == Audiolibro` y `estado == Leido`:
-    /// marca que se quiere comprar la edición física en el futuro.
-    #[serde(default)]
     pub comprar_fisico: bool,
-    /// Marca un libro (no audiolibro) para volver a leerlo en el futuro.
     #[serde(default)]
     pub relectura: bool,
-    /// Solo tiene sentido cuando `formato != Audiolibro`.
-    #[serde(default)]
-    pub paginas_totales: Option<u32>,
-    /// Solo tiene sentido cuando `formato == Audiolibro`, en minutos.
     #[serde(default)]
     pub duracion_min: Option<u32>,
-    /// Texto libre del apartado "Comentarios" del panel de detalles.
     #[serde(default)]
     pub comentarios: Option<String>,
-    pub saga: Option<Saga>,
     pub fechas: Fechas,
-}
-
-fn ananquel_dir(vault_path: &str) -> std::path::PathBuf {
-    Path::new(vault_path).join(ANANQUEL_DIR)
 }
 
 fn deserialize_valoracion<'de, D>(deserializer: D) -> Result<Option<u8>, D::Error>
@@ -104,152 +68,537 @@ where
     Ok(raw.map(|v| v.round().clamp(0.0, 255.0) as u8))
 }
 
-/// Convierte las valoraciones de la escala antigua (0-10 en enteros, medio
-/// punto de estrella por unidad: p. ej. 9 = 4.5★) a la nueva (1-5 estrellas
-/// enteras, sin medias): dividir entre 2 y redondear a la unidad más
-/// cercana (mitad hacia arriba, el redondeo estándar de Rust para `f64`),
-/// para minimizar la pérdida de información — p. ej. 9 (4.5★) -> 5,
-/// 7 (3.5★) -> 4, 1 (0.5★) -> 1. Solo se llama una vez por vault, controlado
-/// por `VaultConfig::rating_migrated` en `load_books`.
-fn migrate_valoraciones(books: &mut [Book]) {
-    for book in books.iter_mut() {
-        if let Some(old) = book.valoracion {
-            let nuevo = ((old as f64 / 2.0).round() as i32).clamp(1, 5) as u8;
-            book.valoracion = Some(nuevo);
+const COLUMNS: &str = "id, position, titulo, autor, isbn, portada, estado, formato, valoracion,
+    comprar_fisico, relectura, duracion_min, comentarios, anadido, inicio_lectura, fin_lectura";
+const SCHEMA: &str = "
+    id TEXT PRIMARY KEY NOT NULL, position INTEGER NOT NULL,
+    titulo TEXT NOT NULL, autor TEXT NOT NULL, isbn TEXT, portada TEXT,
+    estado TEXT NOT NULL CHECK(estado IN ('pendiente','leyendo','leido','abandonado')),
+    formato TEXT NOT NULL CHECK(formato IN ('libro','audiolibro')),
+    valoracion INTEGER CHECK(valoracion BETWEEN 1 AND 10),
+    comprar_fisico INTEGER NOT NULL, relectura INTEGER NOT NULL,
+    duracion_min INTEGER CHECK(duracion_min >= 0), comentarios TEXT,
+    anadido TEXT NOT NULL, inicio_lectura TEXT, fin_lectura TEXT";
+
+fn has_column(conn: &Connection, table: &str, column: &str) -> Result<bool, String> {
+    let mut stmt = conn
+        .prepare(&format!("PRAGMA table_info({table})"))
+        .map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |row| row.get::<_, String>(1))
+        .map_err(|e| e.to_string())?;
+    for row in rows {
+        if row.map_err(|e| e.to_string())? == column {
+            return Ok(true);
         }
     }
+    Ok(false)
 }
 
-/// Renombra un archivo con el nombre antiguo al nuevo si el nuevo todavía no
-/// existe. `rename` en el mismo directorio es atómico, así que esto nunca
-/// puede dejar el archivo a medias ni duplicar datos.
-fn migrate_legacy_filename(dir: &Path, legacy: &str, current: &str) {
-    let legacy_path = dir.join(legacy);
-    let current_path = dir.join(current);
-    if legacy_path.exists() && !current_path.exists() {
-        let _ = fs::rename(&legacy_path, &current_path);
+fn create_tables(conn: &Connection) -> Result<(), String> {
+    for (table, kind) in [("books", "libro"), ("audiobooks", "audiolibro")] {
+        conn.execute_batch(&format!(
+            "CREATE TABLE IF NOT EXISTS {table} ({SCHEMA},
+            CHECK(formato = '{kind}'));
+            CREATE INDEX IF NOT EXISTS idx_{table}_titulo ON {table}(titulo);
+            CREATE INDEX IF NOT EXISTS idx_{table}_autor ON {table}(autor);"
+        ))
+        .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+fn estado_db(v: &EstadoLectura) -> &'static str {
+    match v {
+        EstadoLectura::Pendiente => "pendiente",
+        EstadoLectura::Leyendo => "leyendo",
+        EstadoLectura::Leido => "leido",
+        EstadoLectura::Abandonado => "abandonado",
+    }
+}
+fn formato_db(v: &FormatoLibro) -> &'static str {
+    match v {
+        FormatoLibro::Libro => "libro",
+        FormatoLibro::Audiolibro => "audiolibro",
+    }
+}
+fn insert_books(conn: &Connection, books: &[Book]) -> Result<(), String> {
+    for (position, b) in books.iter().enumerate() {
+        let table = if b.formato == FormatoLibro::Audiolibro {
+            "audiobooks"
+        } else {
+            "books"
+        };
+        conn.execute(
+            &format!(
+                "INSERT INTO {table} ({COLUMNS})
+            VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)"
+            ),
+            params![
+                b.id,
+                position as i64,
+                b.titulo,
+                b.autor,
+                b.isbn,
+                b.portada,
+                estado_db(&b.estado),
+                formato_db(&b.formato),
+                b.valoracion,
+                b.comprar_fisico,
+                b.relectura,
+                b.duracion_min,
+                b.comentarios,
+                b.fechas.anadido,
+                b.fechas.inicio_lectura,
+                b.fechas.fin_lectura
+            ],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+fn read_database_books(conn: &Connection) -> Result<Vec<Book>, String> {
+    let mut stmt = conn
+        .prepare(&format!(
+            "SELECT {COLUMNS} FROM books UNION ALL
+        SELECT {COLUMNS} FROM audiobooks ORDER BY position, id"
+        ))
+        .map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |r| {
+            let estado: String = r.get(6)?;
+            let formato: String = r.get(7)?;
+            Ok(Book {
+                id: r.get(0)?,
+                titulo: r.get(2)?,
+                autor: r.get(3)?,
+                isbn: r.get(4)?,
+                portada: r.get(5)?,
+                estado: match estado.as_str() {
+                    "pendiente" => EstadoLectura::Pendiente,
+                    "leyendo" => EstadoLectura::Leyendo,
+                    "leido" => EstadoLectura::Leido,
+                    "abandonado" => EstadoLectura::Abandonado,
+                    _ => return Err(rusqlite::Error::InvalidQuery),
+                },
+                formato: match formato.as_str() {
+                    "libro" => FormatoLibro::Libro,
+                    "audiolibro" => FormatoLibro::Audiolibro,
+                    _ => return Err(rusqlite::Error::InvalidQuery),
+                },
+                valoracion: r.get(8)?,
+                comprar_fisico: r.get(9)?,
+                relectura: r.get(10)?,
+                duracion_min: r.get(11)?,
+                comentarios: r.get(12)?,
+                fechas: Fechas {
+                    anadido: r.get(13)?,
+                    inicio_lectura: r.get(14)?,
+                    fin_lectura: r.get(15)?,
+                },
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())
+}
+
+// Solo se leen JSON para importar bibliotecas anteriores; nunca se actualizan.
+fn import_json_books(path: &str) -> Result<Vec<Book>, String> {
+    let root = Path::new(path);
+    let mut books = Vec::new();
+    for (current, legacy) in [
+        (LIBRARY_FILE, LEGACY_LIBRARY_FILE),
+        (AUDIOBOOKS_FILE, LEGACY_AUDIOBOOKS_FILE),
+    ] {
+        let candidates = [
+            root.join(current),
+            root.join(ANANQUEL_DIR).join(current),
+            root.join(ANANQUEL_DIR).join(legacy),
+        ];
+        if let Some(source) = candidates.iter().find(|p| p.exists()) {
+            let raw = fs::read_to_string(source).map_err(|e| e.to_string())?;
+            let imported: Vec<Book> =
+                serde_json::from_str(&raw).map_err(|e| format!("{}: {e}", source.display()))?;
+            let backup = root.join(ANANQUEL_DIR).join("backups");
+            fs::create_dir_all(&backup).map_err(|e| e.to_string())?;
+            let target = backup.join(current);
+            if !target.exists() {
+                fs::copy(source, target).map_err(|e| e.to_string())?;
+            }
+            books.extend(imported);
+        }
+    }
+    Ok(books)
+}
+fn read_legacy_json_table(conn: &Connection, table: &str) -> Result<Vec<Book>, String> {
+    let mut stmt = conn
+        .prepare(&format!("SELECT data FROM {table} ORDER BY position, id"))
+        .map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |r| r.get::<_, String>(0))
+        .map_err(|e| e.to_string())?;
+    rows.map(|r| serde_json::from_str(&r.map_err(|e| e.to_string())?).map_err(|e| e.to_string()))
+        .collect()
+}
+fn convert_ratings(books: &mut [Book], five_point: bool) {
+    for b in books {
+        b.valoracion = b.valoracion.map(|v| {
+            if five_point {
+                v.saturating_mul(2).clamp(1, 10)
+            } else {
+                v.clamp(1, 10)
+            }
+        });
     }
 }
 
-/// Mueve `filename` de `old_dir` a `new_dir` si todavía está en la ubicación
-/// antigua y la nueva no existe ya. `rename` es atómico incluso entre
-/// carpetas del mismo volumen, así que esto no puede perder ni duplicar nada.
-fn migrate_file_dir(old_dir: &Path, new_dir: &Path, filename: &str) {
-    let old_path = old_dir.join(filename);
-    let new_path = new_dir.join(filename);
-    if old_path.exists() && !new_path.exists() {
-        let _ = fs::rename(&old_path, &new_path);
+/// Todo el cambio de esquema y su marcador se confirman en una transacción.
+fn migrate(conn: &mut Connection, path: &str) -> Result<(), String> {
+    let version: i64 = conn
+        .query_row("PRAGMA user_version", [], |r| r.get(0))
+        .map_err(|e| e.to_string())?;
+    if version == 3 {
+        return Ok(());
     }
-}
-
-/// Lee un archivo de libros. Si todavía no existe (vault recién creado,
-/// primera vez que se separan los audiolibros...), devuelve una lista
-/// vacía en vez de un error: no tener el archivo es un estado válido.
-fn read_books_file(file: &Path) -> Result<Vec<Book>, String> {
-    if !file.exists() {
-        return Ok(Vec::new());
+    if version > 3 {
+        return Err("Esta biblioteca requiere una versión más reciente de Anaquel.".into());
     }
-    let raw = fs::read_to_string(file).map_err(|e| e.to_string())?;
-    serde_json::from_str(&raw).map_err(|e| format!("{} no es válido: {e}", file.display()))
+    let tx = conn
+        .transaction_with_behavior(TransactionBehavior::Immediate)
+        .map_err(|e| e.to_string())?;
+    let version: i64 = tx
+        .query_row("PRAGMA user_version", [], |r| r.get(0))
+        .map_err(|e| e.to_string())?;
+    if version == 3 {
+        return tx.commit().map_err(|e| e.to_string());
+    }
+    tx.execute_batch(
+        "CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);",
+    )
+    .map_err(|e| e.to_string())?;
+    let old_json = if has_column(&tx, "legacy_books_json", "data")? {
+        Some("legacy_books_json")
+    } else if has_column(&tx, "books", "data")? {
+        Some("books")
+    } else {
+        None
+    };
+    if let Some(table) = old_json {
+        let mut books = read_legacy_json_table(&tx, table)?;
+        convert_ratings(&mut books, true);
+        tx.execute_batch("DROP TABLE IF EXISTS books; DROP TABLE IF EXISTS audiobooks; DROP TABLE IF EXISTS legacy_books_json;")
+            .map_err(|e| e.to_string())?;
+        create_tables(&tx)?;
+        insert_books(&tx, &books)?;
+    } else if has_column(&tx, "books", "editorial")? {
+        // Las dos tablas normalizadas anteriores usan notas 1–5.
+        for table in ["books", "audiobooks"] {
+            tx.execute_batch(&format!("ALTER TABLE {table} RENAME TO old_{table};"))
+                .map_err(|e| e.to_string())?;
+        }
+        create_tables(&tx)?;
+        for (table, kind) in [("books", "libro"), ("audiobooks", "audiolibro")] {
+            tx.execute_batch(&format!("INSERT INTO {table} ({COLUMNS})
+                SELECT id, position, titulo, autor, isbn, portada,
+                    CASE WHEN estado IN ('quiero_leer','pospuesto') THEN 'pendiente' ELSE estado END,
+                    '{kind}', CASE WHEN valoracion IS NULL THEN NULL ELSE max(1,min(10,valoracion*2)) END,
+                    comprar_fisico, relectura, duracion_min, comentarios, anadido, inicio_lectura, fin_lectura
+                FROM old_{table};
+                DROP TABLE old_{table};")).map_err(|e| e.to_string())?;
+        }
+        create_tables(&tx)?; // Recrea índices cuyos nombres pertenecían a las tablas antiguas.
+    } else {
+        create_tables(&tx)?;
+        let imported: Option<String> = tx
+            .query_row(
+                "SELECT value FROM metadata WHERE key='json_migrated'",
+                [],
+                |r| r.get(0),
+            )
+            .optional()
+            .map_err(|e| e.to_string())?;
+        if imported.is_none() {
+            let mut books = import_json_books(path)?;
+            convert_ratings(&mut books, crate::vault::read_config(path).rating_migrated);
+            insert_books(&tx, &books)?;
+        }
+    }
+    tx.execute_batch(
+        "INSERT OR REPLACE INTO metadata VALUES ('json_migrated','1'); PRAGMA user_version=3;",
+    )
+    .map_err(|e| e.to_string())?;
+    tx.commit().map_err(|e| e.to_string())
 }
 
-/// Escribe a un archivo temporal y renombra: un corte a mitad de escritura
-/// (disco lleno, corte de luz) deja el archivo original intacto en vez de
-/// truncado, porque `rename` en el mismo directorio es atómico.
-fn write_books_file(file: &Path, books: &[Book]) -> Result<(), String> {
-    let raw = serde_json::to_string_pretty(books).map_err(|e| e.to_string())?;
-    let tmp = file.with_extension("json.tmp");
-    fs::write(&tmp, raw).map_err(|e| e.to_string())?;
-    fs::rename(&tmp, file).map_err(|e| e.to_string())
+fn open_database(path: &str) -> Result<Connection, String> {
+    let dir = Path::new(path).join(ANANQUEL_DIR);
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let db = dir.join(DATABASE_FILE);
+    let existed = db.exists();
+    let mut conn = Connection::open(&db).map_err(|e| e.to_string())?;
+    conn.busy_timeout(std::time::Duration::from_secs(5))
+        .map_err(|e| e.to_string())?;
+    let version: i64 = conn
+        .query_row("PRAGMA user_version", [], |r| r.get(0))
+        .map_err(|e| e.to_string())?;
+    if existed && version < 3 {
+        let backup = dir.join("backups");
+        fs::create_dir_all(&backup).map_err(|e| e.to_string())?;
+        let backup = backup.join(format!(
+            "before-simplification-{}.sqlite3",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_err(|e| e.to_string())?
+                .as_nanos()
+        ));
+        conn.execute("VACUUM INTO ?1", params![backup.to_string_lossy()])
+            .map_err(|e| e.to_string())?;
+    }
+    conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;")
+        .map_err(|e| e.to_string())?;
+    migrate(&mut conn, path)?;
+    Ok(conn)
 }
 
-/// Lee `mybooks.json` y `myaudiobooks.json` y devuelve la unión, igual que si
-/// siempre hubiera sido un único array — el frontend no sabe ni le importa
-/// que estén repartidos en dos archivos.
-///
-/// Si todavía existen los nombres antiguos (`library.json`/`audiobooks.json`,
-/// de antes de renombrarlos) y los nuevos no, se renombran ya mismo — un
-/// `rename` es atómico, así que esto no puede perder ni duplicar nada.
-///
-/// Ambos archivos viven en la raíz del vault, no dentro de `.ananquel/`: son
-/// "tus" datos (como las notas de un vault de Obsidian), mientras que
-/// `.ananquel/` se reserva para lo que gestiona la app internamente
-/// (`config.json`, `covers/`). Si todavía están dentro de `.ananquel/` (de
-/// antes de este cambio), se mueven ya mismo a la raíz.
-///
-/// Si `mybooks.json` todavía tiene audiolibros sueltos (de antes de que
-/// existiera `myaudiobooks.json`), se migran ya mismo: se fusionan por `id`
-/// con lo que hubiera en `myaudiobooks.json` (para que reintentar tras un
-/// fallo a medias no duplique nada) y se escribe primero el archivo que
-/// *añade* datos y solo después el que *quita* — así un fallo entre medias
-/// deja como mucho un duplicado recuperable, nunca una pérdida.
-///
-/// También dispara `migrate_valoraciones` la primera vez que se abre un
-/// vault con valoraciones en la escala antigua (ver `VaultConfig::rating_migrated`).
 #[tauri::command]
 pub fn load_books(path: String) -> Result<Vec<Book>, String> {
-    let vault_dir = Path::new(&path);
-    let dir = ananquel_dir(&path);
-    migrate_legacy_filename(&dir, LIBRARY_FILE_LEGACY, LIBRARY_FILE);
-    migrate_legacy_filename(&dir, AUDIOBOOKS_FILE_LEGACY, AUDIOBOOKS_FILE);
-    migrate_file_dir(&dir, vault_dir, LIBRARY_FILE);
-    migrate_file_dir(&dir, vault_dir, AUDIOBOOKS_FILE);
-
-    let library_file = vault_dir.join(LIBRARY_FILE);
-    let audiobooks_file = vault_dir.join(AUDIOBOOKS_FILE);
-
-    let mut libros_raw = read_books_file(&library_file)?;
-    let mut audiolibros_raw = read_books_file(&audiobooks_file)?;
-
-    let mut config = crate::vault::read_config(&path);
-    if !config.rating_migrated {
-        migrate_valoraciones(&mut libros_raw);
-        migrate_valoraciones(&mut audiolibros_raw);
-        write_books_file(&library_file, &libros_raw)?;
-        write_books_file(&audiobooks_file, &audiolibros_raw)?;
-        config.rating_migrated = true;
-        let _ = crate::vault::write_config(&path, &config);
-    }
-
-    let (mezclados, libros): (Vec<Book>, Vec<Book>) =
-        libros_raw.into_iter().partition(|b| b.formato == FormatoLibro::Audiolibro);
-
-    if mezclados.is_empty() {
-        let mut result = libros;
-        result.extend(audiolibros_raw);
-        return Ok(result);
-    }
-
-    let mut by_id: HashMap<String, Book> = HashMap::new();
-    for b in audiolibros_raw {
-        by_id.insert(b.id.clone(), b);
-    }
-    for b in mezclados {
-        by_id.insert(b.id.clone(), b);
-    }
-    let mut audiolibros: Vec<Book> = by_id.into_values().collect();
-    audiolibros.sort_by(|a, b| a.id.cmp(&b.id));
-
-    write_books_file(&audiobooks_file, &audiolibros)?;
-    write_books_file(&library_file, &libros)?;
-
-    let mut result = libros;
-    result.extend(audiolibros);
-    Ok(result)
+    read_database_books(&open_database(&path)?)
 }
 
-/// Sobrescribe `mybooks.json` y `myaudiobooks.json` con la lista completa
-/// que manda el frontend, repartida por `formato`. El frontend es quien
-/// mantiene el array en memoria; aquí solo persistimos el estado que nos
-/// manda, sin fusionar ni deducir nada más allá de a qué archivo va cada
-/// libro.
 #[tauri::command]
 pub fn save_books(path: String, books: Vec<Book>) -> Result<(), String> {
-    let vault_dir = Path::new(&path);
+    let mut conn = open_database(&path)?;
+    let tx = conn
+        .transaction_with_behavior(TransactionBehavior::Immediate)
+        .map_err(|e| e.to_string())?;
+    tx.execute_batch("DELETE FROM books; DELETE FROM audiobooks;")
+        .map_err(|e| e.to_string())?;
+    insert_books(&tx, &books)?;
+    tx.commit().map_err(|e| e.to_string())
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    const OLD_SCHEMA: &str = "\n    id TEXT PRIMARY KEY NOT NULL,\n    position INTEGER NOT NULL,\n    titulo TEXT NOT NULL,\n    autor TEXT NOT NULL,\n    isbn TEXT,\n    portada TEXT,\n    estado TEXT NOT NULL,\n    formato TEXT NOT NULL,\n    editorial TEXT,\n    valoracion INTEGER,\n    favorito INTEGER NOT NULL DEFAULT 0,\n    comprar_fisico INTEGER NOT NULL DEFAULT 0,\n    relectura INTEGER NOT NULL DEFAULT 0,\n    paginas_totales INTEGER,\n    duracion_min INTEGER,\n    comentarios TEXT,\n    saga_nombre TEXT,\n    saga_numero INTEGER,\n    saga_total_libros INTEGER,\n    anadido TEXT NOT NULL,\n    inicio_lectura TEXT,\n    fin_lectura TEXT";
 
-    let (audiolibros, libros): (Vec<Book>, Vec<Book>) =
-        books.into_iter().partition(|b| b.formato == FormatoLibro::Audiolibro);
-
-    write_books_file(&vault_dir.join(AUDIOBOOKS_FILE), &audiolibros)?;
-    write_books_file(&vault_dir.join(LIBRARY_FILE), &libros)
+    fn sample(id: &str, audio: bool) -> Book {
+        Book {
+            id: id.into(),
+            titulo: "Título ñ".into(),
+            autor: "Autor".into(),
+            isbn: Some("123".into()),
+            portada: Some("covers/test.jpg".into()),
+            estado: EstadoLectura::Pendiente,
+            formato: if audio {
+                FormatoLibro::Audiolibro
+            } else {
+                FormatoLibro::Libro
+            },
+            valoracion: Some(7),
+            comprar_fisico: audio,
+            relectura: !audio,
+            duracion_min: if audio { Some(123) } else { None },
+            comentarios: Some("Comentario".into()),
+            fechas: Fechas {
+                anadido: "2026-09-30".into(),
+                inicio_lectura: None,
+                fin_lectura: Some("2026-10-01".into()),
+            },
+        }
+    }
+    fn old_database() -> Connection {
+        let conn = Connection::open_in_memory().unwrap();
+        for table in ["books", "audiobooks"] {
+            conn.execute_batch(&format!("CREATE TABLE {table} ({OLD_SCHEMA});"))
+                .unwrap();
+        }
+        conn.execute_batch(
+            "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT);
+            INSERT INTO metadata VALUES ('json_migrated','1');",
+        )
+        .unwrap();
+        conn
+    }
+    fn old_row(
+        conn: &Connection,
+        table: &str,
+        id: &str,
+        estado: &str,
+        formato: &str,
+        rating: Option<u8>,
+    ) {
+        conn.execute(&format!("INSERT INTO {table}
+            (id,position,titulo,autor,estado,formato,valoracion,anadido,editorial,saga_nombre,favorito,paginas_totales)
+            VALUES (?1,0,'Título','Autor',?2,?3,?4,'2026-01-01','Editorial','Saga',1,100)"),
+            params![id,estado,formato,rating]).unwrap();
+    }
+    #[test]
+    fn normalized_migration_converts_once_and_removes_columns() {
+        let mut c = old_database();
+        old_row(&c, "books", "b", "quiero_leer", "ebook", Some(4));
+        old_row(&c, "audiobooks", "a", "pospuesto", "audiolibro", None);
+        migrate(&mut c, "unused").unwrap();
+        migrate(&mut c, "unused").unwrap();
+        let books = read_database_books(&c).unwrap();
+        assert_eq!(books.len(), 2);
+        assert!(books.iter().all(|b| b.estado == EstadoLectura::Pendiente));
+        assert_eq!(
+            books.iter().find(|b| b.id == "b").unwrap().valoracion,
+            Some(8)
+        );
+        assert_eq!(books.iter().find(|b| b.id == "a").unwrap().valoracion, None);
+        assert_eq!(
+            books.iter().find(|b| b.id == "b").unwrap().formato,
+            FormatoLibro::Libro
+        );
+        for table in ["books", "audiobooks"] {
+            for col in [
+                "editorial",
+                "favorito",
+                "paginas_totales",
+                "saga_nombre",
+                "saga_numero",
+                "saga_total_libros",
+                "data",
+            ] {
+                assert!(!has_column(&c, table, col).unwrap());
+            }
+        }
+    }
+    #[test]
+    fn migration_failure_rolls_back_schema_and_data() {
+        let mut c = old_database();
+        old_row(&c, "books", "b", "invalid", "fisico", Some(3));
+        assert!(migrate(&mut c, "unused").is_err());
+        assert!(has_column(&c, "books", "editorial").unwrap());
+        let count: i64 = c
+            .query_row("SELECT count(*) FROM books", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 1);
+        let v: i64 = c
+            .query_row("PRAGMA user_version", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(v, 0);
+    }
+    #[test]
+    fn numeric_roundtrip_and_constraints() {
+        let c = Connection::open_in_memory().unwrap();
+        create_tables(&c).unwrap();
+        let mut b = sample("b", false);
+        b.valoracion = Some(1);
+        let mut a = sample("a", true);
+        a.valoracion = Some(10);
+        let input = vec![b, a];
+        insert_books(&c, &input).unwrap();
+        assert_eq!(
+            serde_json::to_value(read_database_books(&c).unwrap()).unwrap(),
+            serde_json::to_value(&input).unwrap()
+        );
+        assert!(c.execute("UPDATE books SET valoracion=11", []).is_err());
+        assert!(c.execute("UPDATE books SET valoracion=0", []).is_err());
+        assert!(c.execute("UPDATE books SET formato='ebook'", []).is_err());
+        assert!(c
+            .execute("UPDATE books SET estado='pospuesto'", [])
+            .is_err());
+    }
+    #[test]
+    fn json_column_migration_preserves_latest_data() {
+        let mut c = Connection::open_in_memory().unwrap();
+        c.execute_batch(
+            "CREATE TABLE books (id TEXT PRIMARY KEY, position INTEGER, formato TEXT, data TEXT);",
+        )
+        .unwrap();
+        let mut b = sample("b", false);
+        b.valoracion = Some(5);
+        let mut value = serde_json::to_value(b).unwrap();
+        value["formato"] = serde_json::json!("comprar");
+        value["estado"] = serde_json::json!("pospuesto");
+        c.execute(
+            "INSERT INTO books VALUES ('b',0,'comprar',?1)",
+            params![value.to_string()],
+        )
+        .unwrap();
+        migrate(&mut c, "unused").unwrap();
+        let result = read_database_books(&c).unwrap();
+        assert_eq!(result[0].valoracion, Some(10));
+        assert_eq!(result[0].formato, FormatoLibro::Libro);
+        assert!(!has_column(&c, "books", "data").unwrap());
+    }
+    #[test]
+    fn rating_conversion_preserves_historical_ten_point_scale() {
+        let mut b = sample("b", false);
+        b.valoracion = Some(9);
+        convert_ratings(std::slice::from_mut(&mut b), false);
+        assert_eq!(b.valoracion, Some(9));
+    }
+    struct TempVault(std::path::PathBuf);
+    impl TempVault {
+        fn new() -> Self {
+            let p = std::env::temp_dir().join(format!(
+                "anaquel-simplification-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            fs::create_dir_all(p.join(ANANQUEL_DIR)).unwrap();
+            Self(p)
+        }
+        fn path(&self) -> String {
+            self.0.to_string_lossy().into_owned()
+        }
+    }
+    impl Drop for TempVault {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+    #[test]
+    fn fresh_json_import_save_reload_move_delete_and_backup() {
+        let v = TempVault::new();
+        let mut b = sample("b", false);
+        b.valoracion = Some(4);
+        let raw = serde_json::to_string(&vec![b]).unwrap();
+        fs::write(v.0.join(LIBRARY_FILE), &raw).unwrap();
+        let mut books = load_books(v.path()).unwrap();
+        assert_eq!(books[0].valoracion, Some(8));
+        books[0].formato = FormatoLibro::Audiolibro;
+        books[0].valoracion = Some(7);
+        save_books(v.path(), books).unwrap();
+        assert_eq!(load_books(v.path()).unwrap()[0].valoracion, Some(7));
+        assert_eq!(fs::read_to_string(v.0.join(LIBRARY_FILE)).unwrap(), raw);
+        assert_eq!(
+            fs::read_to_string(v.0.join(ANANQUEL_DIR).join("backups").join(LIBRARY_FILE)).unwrap(),
+            raw
+        );
+        save_books(v.path(), vec![]).unwrap();
+        assert!(load_books(v.path()).unwrap().is_empty());
+    }
+    #[test]
+    fn sqlite_backup_contains_removed_fields() {
+        let v = TempVault::new();
+        let c = Connection::open(v.0.join(ANANQUEL_DIR).join(DATABASE_FILE)).unwrap();
+        for t in ["books", "audiobooks"] {
+            c.execute_batch(&format!("CREATE TABLE {t} ({OLD_SCHEMA});"))
+                .unwrap();
+        }
+        old_row(&c, "books", "b", "leido", "fisico", Some(5));
+        drop(c);
+        assert_eq!(load_books(v.path()).unwrap()[0].valoracion, Some(10));
+        let backup = fs::read_dir(v.0.join(ANANQUEL_DIR).join("backups"))
+            .unwrap()
+            .next()
+            .unwrap()
+            .unwrap()
+            .path();
+        let backup = Connection::open(backup).unwrap();
+        assert!(has_column(&backup, "books", "editorial").unwrap());
+        let score: i64 = backup
+            .query_row("SELECT valoracion FROM books", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(score, 5);
+    }
 }

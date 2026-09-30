@@ -24,9 +24,8 @@ pub fn cancel_export(state: tauri::State<ExportState>) {
 
 fn estado_label(estado: &EstadoLectura) -> &'static str {
     match estado {
-        EstadoLectura::QuieroLeer => "Quiero leer",
+        EstadoLectura::Pendiente => "Pendiente",
         EstadoLectura::Leyendo => "Leyendo",
-        EstadoLectura::Pospuesto => "Pospuesto",
         EstadoLectura::Leido => "Leído",
         EstadoLectura::Abandonado => "Abandonado",
     }
@@ -34,9 +33,7 @@ fn estado_label(estado: &EstadoLectura) -> &'static str {
 
 fn formato_label(formato: &FormatoLibro) -> &'static str {
     match formato {
-        FormatoLibro::Fisico => "Físico",
-        FormatoLibro::Ebook => "Ebook",
-        FormatoLibro::Comprar => "Comprar",
+        FormatoLibro::Libro => "Libro",
         FormatoLibro::Audiolibro => "Audiolibro",
     }
 }
@@ -46,7 +43,7 @@ const CANCELLED: &str = "cancelado";
 /// "Relectura" no aplica a audiolibros (la app ya no deja marcarla ahí), así
 /// que la hoja de Audiolibros se genera sin esa columna.
 fn headers_for(audio: bool) -> Vec<&'static str> {
-    let mut headers = vec!["Título", "Autor", "Saga", "Estado", "Formato", "Editorial", "Páginas", "Valoración", "Favorito"];
+    let mut headers = vec!["Título", "Autor", "Estado", "Tipo", "Valoración (1–10)"];
     if !audio {
         headers.push("Relectura");
     }
@@ -78,38 +75,29 @@ fn write_sheet(
             return Err(CANCELLED.to_string());
         }
         let row = (i + 1) as u32;
-        let saga = book
-            .saga
-            .as_ref()
-            .map(|s| format!("{} #{}", s.nombre, s.numero))
-            .unwrap_or_default();
 
         let mut col: u16 = 0;
-        sheet.write_string(row, col, &book.titulo).map_err(|e| e.to_string())?;
-        col += 1;
-        sheet.write_string(row, col, &book.autor).map_err(|e| e.to_string())?;
-        col += 1;
-        sheet.write_string(row, col, &saga).map_err(|e| e.to_string())?;
-        col += 1;
-        sheet.write_string(row, col, estado_label(&book.estado)).map_err(|e| e.to_string())?;
-        col += 1;
-        sheet.write_string(row, col, formato_label(&book.formato)).map_err(|e| e.to_string())?;
-        col += 1;
         sheet
-            .write_string(row, col, book.editorial.as_deref().unwrap_or(""))
+            .write_string(row, col, &book.titulo)
             .map_err(|e| e.to_string())?;
         col += 1;
-        if let Some(p) = book.paginas_totales {
-            sheet.write_number(row, col, p as f64).map_err(|e| e.to_string())?;
-        }
+        sheet
+            .write_string(row, col, &book.autor)
+            .map_err(|e| e.to_string())?;
+        col += 1;
+        sheet
+            .write_string(row, col, estado_label(&book.estado))
+            .map_err(|e| e.to_string())?;
+        col += 1;
+        sheet
+            .write_string(row, col, formato_label(&book.formato))
+            .map_err(|e| e.to_string())?;
         col += 1;
         if let Some(v) = book.valoracion {
-            sheet.write_number(row, col, v as f64).map_err(|e| e.to_string())?;
+            sheet
+                .write_number(row, col, v as f64)
+                .map_err(|e| e.to_string())?;
         }
-        col += 1;
-        sheet
-            .write_string(row, col, if book.favorito { "Sí" } else { "No" })
-            .map_err(|e| e.to_string())?;
         col += 1;
         if !audio {
             sheet
@@ -118,7 +106,11 @@ fn write_sheet(
             col += 1;
         }
         sheet
-            .write_string(row, col, book.fechas.inicio_lectura.as_deref().unwrap_or(""))
+            .write_string(
+                row,
+                col,
+                book.fechas.inicio_lectura.as_deref().unwrap_or(""),
+            )
             .map_err(|e| e.to_string())?;
         col += 1;
         sheet
@@ -148,8 +140,9 @@ pub fn export_library(
     state.0.store(false, Ordering::SeqCst);
     let cancelled = state.0.as_ref();
 
-    let (audiolibros, libros): (Vec<Book>, Vec<Book>) =
-        books.into_iter().partition(|b| b.formato == FormatoLibro::Audiolibro);
+    let (audiolibros, libros): (Vec<Book>, Vec<Book>) = books
+        .into_iter()
+        .partition(|b| b.formato == FormatoLibro::Audiolibro);
 
     let mut workbook = Workbook::new();
     write_sheet(&mut workbook, "Libros", &libros, false, cancelled)?;

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, BookOpen, Barcode, LibraryBig, ListChecks, Star, User, X } from "lucide-react";
-import type { Book, EstadoLectura, FormatoLibro, LibraryKind } from "../../types/book";
-import { ESTADOS_LECTURA, FORMATO_LABEL, estadoLabel } from "../../types/book";
+import { AlertTriangle, BookOpen, Barcode, ListChecks, User, X } from "lucide-react";
+import type { Book, EstadoLectura, LibraryKind } from "../../types/book";
+import { ESTADOS_LECTURA, estadoLabel } from "../../types/book";
 import { useIsbnLookup } from "../../lib/useIsbnLookup";
 import { applyMetadata } from "../../lib/metadata";
 import { findDuplicate } from "../../lib/duplicates";
 import { DropdownSelect } from "../ui/fields/DropdownSelect";
-import { StarRatingField } from "../ui/fields/StarRatingField";
+import { RatingField } from "../ui/fields/RatingField";
 import { ToggleField } from "../ui/fields/ToggleField";
 import { DateField } from "../ui/fields/DateField";
 import "../ui/Dialog.css";
@@ -20,9 +20,6 @@ interface AddBookDialogProps {
   onClose: () => void;
 }
 
-const FORMATOS_LIBRO: FormatoLibro[] = ["fisico", "ebook", "comprar"];
-const FORMATO_OPTIONS = FORMATOS_LIBRO.map((f) => ({ value: f, label: FORMATO_LABEL[f] }));
-
 export function AddBookDialog({
   vaultPath,
   libraryKind,
@@ -35,8 +32,7 @@ export function AddBookDialog({
   const [isbn, setIsbn] = useState("");
   const [titulo, setTitulo] = useState("");
   const [autor, setAutor] = useState("");
-  const [estado, setEstado] = useState<EstadoLectura>("quiero_leer");
-  const [formato, setFormato] = useState<FormatoLibro>(audio ? "audiolibro" : "fisico");
+  const [estado, setEstado] = useState<EstadoLectura>("pendiente");
   const [valoracion, setValoracion] = useState<number | null>(null);
   const [relectura, setRelectura] = useState(false);
   const [fechaInicio, setFechaInicio] = useState("");
@@ -70,16 +66,12 @@ export function AddBookDialog({
       isbn: isbn.trim() || null,
       portada: null,
       estado,
-      formato,
-      editorial: null,
+      formato: audio ? "audiolibro" : "libro",
       valoracion: estado === "leido" ? valoracion : null,
-      favorito: false,
       comprar_fisico: false,
       relectura: estado === "leido" ? relectura : false,
-      paginas_totales: null,
       duracion_min: null,
       comentarios: null,
-      saga: null,
       fechas: {
         añadido: hoy,
         inicio_lectura: estado === "leyendo" || estado === "leido" ? fechaInicio || null : null,
@@ -137,7 +129,7 @@ export function AddBookDialog({
           <input value={autor} onChange={(e) => setAutor(e.target.value)} required />
         </label>
 
-        <div className={audio ? undefined : "dialog-row"}>
+        <div className="dialog-row">
           <label className="dialog-field">
             <span>
               <ListChecks size={13} strokeWidth={2} />
@@ -151,20 +143,6 @@ export function AddBookDialog({
             />
           </label>
 
-          {!audio && (
-            <label className="dialog-field">
-              <span>
-                <LibraryBig size={13} strokeWidth={2} />
-                Formato
-              </span>
-              <DropdownSelect
-                value={formato}
-                options={FORMATO_OPTIONS}
-                onChange={(v) => setFormato(v as FormatoLibro)}
-                triggerClassName="dialog-select-trigger"
-              />
-            </label>
-          )}
         </div>
 
         {duplicate && (
@@ -189,13 +167,7 @@ export function AddBookDialog({
 
         {estado === "leido" && (
           <div className="dialog-row-end">
-            <label className="dialog-field">
-              <span>
-                <Star size={13} strokeWidth={2} />
-                Valoración
-              </span>
-              <StarRatingField value={valoracion} onChange={setValoracion} />
-            </label>
+            <RatingField value={valoracion} onChange={setValoracion} />
             {!audio && (
               <ToggleField label="Relectura" checked={relectura} onChange={setRelectura} />
             )}

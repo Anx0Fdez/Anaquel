@@ -1,16 +1,7 @@
 // Espejo en TypeScript de la struct Book de src-tauri/src/library.rs (ver docs/library-format.md).
-// Los nombres de campo coinciden 1:1 con las claves del library.json del vault para que
-// la (de)serialización entre Rust y el frontend no necesite un mapeo aparte.
+export type EstadoLectura = "pendiente" | "leyendo" | "leido" | "abandonado";
 
-export type EstadoLectura = "quiero_leer" | "leyendo" | "pospuesto" | "leido" | "abandonado";
-
-export type FormatoLibro = "fisico" | "ebook" | "comprar" | "audiolibro";
-
-export interface Saga {
-  nombre: string;
-  numero: number;
-  total_libros: number | null;
-}
+export type FormatoLibro = "libro" | "audiolibro";
 
 export interface Fechas {
   añadido: string; // ISO date
@@ -26,15 +17,11 @@ export interface Book {
   portada: string | null; // ruta relativa a .ananquel/covers/
   estado: EstadoLectura;
   formato: FormatoLibro;
-  editorial: string | null;
-  valoracion: number | null; // 1-5 estrellas enteras, sin medias
-  favorito: boolean;
+  valoracion: number | null; // 1-10, puntuación entera
   comprar_fisico: boolean; // solo relevante si formato=audiolibro y estado=leido
   relectura: boolean; // marcar para volver a leerlo en el futuro
-  paginas_totales: number | null; // solo relevante si formato != audiolibro
   duracion_min: number | null; // solo relevante si formato == audiolibro
   comentarios: string | null;
-  saga: Saga | null;
   fechas: Fechas;
 }
 
@@ -53,17 +40,15 @@ export type Theme = "light" | "dark";
 export type LibraryKind = "libros" | "audiolibros";
 
 export const ESTADO_LABEL: Record<EstadoLectura, string> = {
-  quiero_leer: "Quiero leer",
+  pendiente: "Pendiente",
   leyendo: "Leyendo",
-  pospuesto: "Pospuesto",
   leido: "Leído",
   abandonado: "Abandonado",
 };
 
 const ESTADO_LABEL_AUDIO: Partial<Record<EstadoLectura, string>> = {
-  quiero_leer: "Quiero escuchar",
+  pendiente: "Pendiente",
   leyendo: "Escuchando",
-  pospuesto: "En pausa",
   leido: "Escuchado",
 };
 
@@ -72,11 +57,9 @@ export function estadoLabel(estado: EstadoLectura, audio: boolean): string {
   return (audio && ESTADO_LABEL_AUDIO[estado]) || ESTADO_LABEL[estado];
 }
 
-export const ESTADOS_LECTURA: EstadoLectura[] = ["quiero_leer", "leyendo", "pospuesto", "leido", "abandonado"];
+export const ESTADOS_LECTURA: EstadoLectura[] = ["pendiente", "leyendo", "leido", "abandonado"];
 
 export const FORMATO_LABEL: Record<FormatoLibro, string> = {
-  fisico: "Físico",
-  ebook: "Ebook",
-  comprar: "Comprar",
+  libro: "Libro",
   audiolibro: "Audiolibro",
 };

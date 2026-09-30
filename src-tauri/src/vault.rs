@@ -47,12 +47,8 @@ pub struct VaultConfig {
     /// es gratuita y se saca en la Google Cloud Console.
     #[serde(default)]
     pub google_books_api_key: Option<String>,
-    /// `true` una vez que las valoraciones del vault ya se migraron de la
-    /// escala antigua (0-10, medio punto de estrella por unidad) a la nueva
-    /// (1-5 estrellas enteras) — ver `library::migrate_valoraciones`. Los
-    /// vaults creados desde cero nacen ya en `true` (nada que migrar); los
-    /// que vienen de una versión anterior cargan `false` (el campo no
-    /// existía en su `config.json`) y disparan la migración una única vez.
+    /// Marcador histórico: los JSON importados con true usan escala 1–5.
+    /// Las migraciones actuales se controlan con user_version en SQLite.
     #[serde(default)]
     pub rating_migrated: bool,
 }
@@ -159,9 +155,7 @@ pub fn read_config(vault_path: &str) -> VaultConfig {
         .unwrap_or_default()
 }
 
-/// Contraparte de `read_config`: sobrescribe `config.json` con `config` tal
-/// cual. Falla en silencio si el vault no tiene ya `.ananquel/` (no debería
-/// pasar, `load_books` solo la llama tras haber leído la config de ahí).
+/// Guarda las preferencias de interfaz y propaga los errores de escritura.
 pub fn write_config(vault_path: &str, config: &VaultConfig) -> Result<(), String> {
     let raw = serde_json::to_string_pretty(config).map_err(|e| e.to_string())?;
     fs::write(config_path(vault_path), raw).map_err(|e| e.to_string())
@@ -249,8 +243,7 @@ pub fn save_vault_config(path: String, mut config: VaultConfig) -> Result<(), St
     // re-migración corrupta de las valoraciones en el siguiente arranque. Se
     // preserva siempre el valor que ya hay en disco.
     config.rating_migrated = read_config(&path).rating_migrated;
-    let raw = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-    fs::write(&config_path(&path), raw).map_err(|e| e.to_string())
+    write_config(&path, &config)
 }
 
 #[tauri::command]

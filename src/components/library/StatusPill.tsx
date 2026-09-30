@@ -1,13 +1,12 @@
-import { BookMarked, BookOpen, CheckCircle2, Headphones, PauseCircle, XCircle } from "lucide-react";
+import { BookMarked, BookOpen, CheckCircle2, Headphones, XCircle } from "lucide-react";
 import type { EstadoLectura } from "../../types/book";
 import { estadoLabel } from "../../types/book";
 import "./StatusPill.css";
 
 const ICON: Record<EstadoLectura, React.ComponentType<{ size?: number }>> = {
   leyendo: BookOpen,
-  pospuesto: PauseCircle,
   leido: CheckCircle2,
-  quiero_leer: BookMarked,
+  pendiente: BookMarked,
   abandonado: XCircle,
 };
 

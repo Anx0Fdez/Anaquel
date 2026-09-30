@@ -10,7 +10,6 @@ import {
   ChevronUp,
   Download,
   Headphones,
-  Heart,
   KeyRound,
   Library,
   Maximize2,
@@ -36,7 +35,7 @@ interface LibraryStats {
   total: number;
   leidos: number;
   enProgreso: number;
-  quieroLeer: number;
+  pendientes: number;
 }
 
 interface SidebarProps {
@@ -65,9 +64,8 @@ function navItemsFor(kind: LibraryKind): { filter: NavFilter; label: string; ico
   return [
     { filter: { kind: "all" }, label: "Biblioteca", icon: Library, showCount: false },
     { filter: { kind: "estado", estado: "leyendo" }, label: audio ? "Escuchando" : "Leyendo", icon: BookOpen, showCount: true },
-    { filter: { kind: "estado", estado: "quiero_leer" }, label: audio ? "Quiero escuchar" : "Quiero leer", icon: BookMarked, showCount: true },
+    { filter: { kind: "estado", estado: "pendiente" }, label: "Pendiente", icon: BookMarked, showCount: true },
     { filter: { kind: "estado", estado: "leido" }, label: audio ? "Escuchados" : "Leídos", icon: CheckCircle2, showCount: true },
-    { filter: { kind: "favoritos" }, label: "Favoritos", icon: Heart, showCount: true },
   ];
 }
 
@@ -213,8 +211,8 @@ export function Sidebar({
           <strong>{stats.enProgreso}</strong>
         </div>
         <div className="sidebar-stats-row">
-          <span>{audio ? "Quiero escuchar" : "Quiero leer"}</span>
-          <strong>{stats.quieroLeer}</strong>
+          <span>{"Pendiente"}</span>
+          <strong>{stats.pendientes}</strong>
         </div>
       </div>
 
