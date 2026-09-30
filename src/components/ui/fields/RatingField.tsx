@@ -1,16 +1,25 @@
-import "./Fields.css";
+import { SelectField } from "./SelectField";
+
 interface RatingFieldProps {
   value: number | null;
   onChange: (value: number | null) => void;
 }
-/** Puntuación numérica de 1 a 10; vacío significa sin valorar. */
+
+const options = [
+  { value: "", label: "Sin valorar" },
+  ...Array.from({ length: 10 }, (_, index) => {
+    const rating = index + 1;
+    return { value: String(rating), label: `${rating}/10` };
+  }),
+];
+
 export function RatingField({ value, onChange }: RatingFieldProps) {
-  return <label className="field">
-    <span>Valoración (1–10)</span>
-    <select className="field-input" aria-label="Valoración de 1 a 10"
-      value={value ?? ""} onChange={e => onChange(e.target.value === "" ? null : Number(e.target.value))}>
-      <option value="">Sin valorar</option>
-      {Array.from({ length: 10 }, (_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
-    </select>
-  </label>;
+  return (
+    <SelectField
+      label="Valoración"
+      value={value == null ? "" : String(value)}
+      options={options}
+      onChange={(nextValue) => onChange(nextValue === "" ? null : Number(nextValue))}
+    />
+  );
 }
