@@ -22,8 +22,8 @@ pub fn run() {
                 if let Ok(Some(monitor)) = window.current_monitor() {
                     let work_area = monitor.work_area();
                     let scale = monitor.scale_factor();
-                    let width = (f64::from(work_area.size.width) / scale * 0.75).round();
-                    let height = (f64::from(work_area.size.height) / scale * 0.75).round();
+                    let width = (f64::from(work_area.size.width) / scale * 0.90).round();
+                    let height = (f64::from(work_area.size.height) / scale * 0.90).round();
                     window.set_size(tauri::LogicalSize::new(width, height))?;
                     window.center()?;
                 }

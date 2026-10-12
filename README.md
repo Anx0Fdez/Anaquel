@@ -104,7 +104,7 @@ Anaquel/
 
 ## Configuración
 
-Cada anaquel guarda sus preferencias (tema, color de acento, orden por defecto, API key de Google Books...) en `.ananquel/config.json`, dentro de la propia carpeta del anaquel. La ventana se abre centrada, en modo ventana y al 75 % del área de pantalla disponible. La biblioteca vive en `.ananquel/library.sqlite3`; al migrar desde una versión anterior se conserva una copia en `.ananquel/backups/` y no se eliminan los JSON originales.
+Cada anaquel guarda sus preferencias (tema, color de acento, orden por defecto, API key de Google Books...) en `.ananquel/config.json`, dentro de la propia carpeta del anaquel. La ventana se abre centrada, en modo ventana y al 90 % del área de pantalla disponible. La biblioteca vive en `.ananquel/library.sqlite3`; al migrar desde una versión anterior se conserva una copia en `.ananquel/backups/` y no se eliminan los JSON originales.
 
 ## API key de Google Books
 
