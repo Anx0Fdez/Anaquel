@@ -3,11 +3,9 @@ import { Sidebar } from "./layout/Sidebar";
 import { LibraryListView } from "./library/LibraryListView";
 import { BookDetailScreen } from "./library/detail/BookDetailScreen";
 import { ExportModal } from "./library/ExportModal";
-import { Toast } from "./ui/Toast";
 import { loadBooks, saveBooks } from "../lib/library";
 import { saveVaultConfig } from "../lib/vault";
 import { pickExportPath, runExport, cancelExport } from "../lib/export";
-import { applyWindowSize, getCurrentWindowSize } from "../lib/window";
 import type { Book, GridCardSize, LibraryKind, Theme, ViewMode } from "../types/book";
 import type { VaultInfo } from "../types/vault";
 import type { NavFilter } from "../state/filters";
@@ -35,23 +33,11 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
   );
   const [exportPhase, setExportPhase] = useState<"idle" | "visible" | "closing">("idle");
   const exportCancelledRef = useRef(false);
-  const [windowWidth, setWindowWidth] = useState<number | null>(vault.config.windowWidth);
-  const [windowHeight, setWindowHeight] = useState<number | null>(vault.config.windowHeight);
   const [accentColor, setAccentColor] = useState<string | null>(vault.config.accentColor);
   const [googleBooksApiKey, setGoogleBooksApiKey] = useState<string | null>(vault.config.googleBooksApiKey);
   const [gridCardSize, setGridCardSize] = useState<GridCardSize>(
     (vault.config.gridCardSize as GridCardSize | null) ?? "mediano",
   );
-  const [toast, setToast] = useState<{ message: string; closing: boolean } | null>(null);
-  const toastTimers = useRef<number[]>([]);
-
-  function showToast(message: string) {
-    toastTimers.current.forEach((t) => window.clearTimeout(t));
-    setToast({ message, closing: false });
-    const closeTimer = window.setTimeout(() => setToast((t) => (t ? { ...t, closing: true } : t)), 2200);
-    const removeTimer = window.setTimeout(() => setToast(null), 2400);
-    toastTimers.current = [closeTimer, removeTimer];
-  }
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -64,16 +50,6 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
       document.documentElement.style.removeProperty("--accent");
     }
   }, [accentColor]);
-
-  // Tamaño de ventana por defecto del vault: se aplica una única vez al
-  // abrirlo (no en cada render), para no pelearse con un resize manual del
-  // usuario durante la sesión.
-  useEffect(() => {
-    if (vault.config.windowWidth != null && vault.config.windowHeight != null) {
-      applyWindowSize(vault.config.windowWidth, vault.config.windowHeight).catch(() => {});
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vault.path]);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,8 +74,6 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
       theme,
       lastView: viewMode,
       anaquelOrder: vault.config.anaquelOrder,
-      windowWidth,
-      windowHeight,
       accentColor,
       defaultSortKey: sortKey,
       lastLibraryKind: libraryKind,
@@ -113,25 +87,12 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
     viewMode,
     vault.path,
     vault.config.anaquelOrder,
-    windowWidth,
-    windowHeight,
     accentColor,
     sortKey,
     libraryKind,
     gridCardSize,
     googleBooksApiKey,
   ]);
-
-  async function handleSaveWindowSize() {
-    try {
-      const { width, height } = await getCurrentWindowSize();
-      setWindowWidth(width);
-      setWindowHeight(height);
-      showToast("Tamaño de ventana guardado");
-    } catch (err) {
-      setSaveError(String(err));
-    }
-  }
 
   function persistBooks(updated: Book[]) {
     setBooks(updated);
@@ -290,7 +251,6 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
         onAccentColorChange={setAccentColor}
         googleBooksApiKey={googleBooksApiKey}
         onGoogleBooksApiKeyChange={setGoogleBooksApiKey}
-        onSaveWindowSize={handleSaveWindowSize}
       />
 
       <div className="app-main">
@@ -348,7 +308,6 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
     {exportPhase !== "idle" && (
       <ExportModal closing={exportPhase === "closing"} onCancel={handleCancelExport} />
     )}
-    {toast && <Toast message={toast.message} closing={toast.closing} />}
     </>
   );
 }

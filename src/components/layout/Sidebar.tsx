@@ -12,7 +12,6 @@ import {
   Headphones,
   KeyRound,
   Library,
-  Maximize2,
   Moon,
   Settings,
   Sun,
@@ -56,7 +55,6 @@ interface SidebarProps {
   onAccentColorChange: (color: string | null) => void;
   googleBooksApiKey: string | null;
   onGoogleBooksApiKeyChange: (key: string | null) => void;
-  onSaveWindowSize: () => void;
 }
 
 function navItemsFor(kind: LibraryKind): { filter: NavFilter; label: string; icon: typeof Library; showCount: boolean }[] {
@@ -92,7 +90,6 @@ export function Sidebar({
   onAccentColorChange,
   googleBooksApiKey,
   onGoogleBooksApiKeyChange,
-  onSaveWindowSize,
 }: SidebarProps) {
   const activeKey = filterKey(activeFilter);
   const [showAllYears, setShowAllYears] = useState(false);
@@ -250,16 +247,6 @@ export function Sidebar({
               >
                 <Download size={14} strokeWidth={2} />
                 {exporting ? "Exportando…" : "Exportar biblioteca (.xlsx)"}
-              </button>
-              <button
-                className="sidebar-settings-item"
-                onClick={() => {
-                  setSettingsOpen(false);
-                  onSaveWindowSize();
-                }}
-              >
-                <Maximize2 size={14} strokeWidth={2} />
-                Guardar tamaño de ventana actual
               </button>
               <div className="sidebar-settings-heading">Color de acento</div>
               <div className="sidebar-settings-colors">

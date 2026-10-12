@@ -17,13 +17,6 @@ pub struct VaultConfig {
     pub last_view: String,
     #[serde(default)]
     pub anaquel_order: Vec<String>,
-    /// Tamaño de ventana preferido, en píxeles lógicos. Vive en el config.json
-    /// del vault (no en un archivo local de la máquina) a propósito: así viaja
-    /// con el vault si se sincroniza entre dispositivos, igual que el tema.
-    #[serde(default)]
-    pub window_width: Option<f64>,
-    #[serde(default)]
-    pub window_height: Option<f64>,
     /// Color de acento personalizado (hex, p. ej. "#4c86e0"). `None` usa el
     /// naranja por defecto de `theme.css`. Vive aquí junto al resto de
     /// preferencias visuales porque también debe viajar con el vault.
@@ -59,8 +52,6 @@ impl Default for VaultConfig {
             theme: "dark".into(),
             last_view: "table".into(),
             anaquel_order: Vec::new(),
-            window_width: None,
-            window_height: None,
             accent_color: None,
             default_sort_key: None,
             last_library_kind: None,

@@ -4,6 +4,8 @@ mod metadata;
 mod updater;
 mod vault;
 
+use tauri::Manager;
+
 /// Plataforma del proceso ("windows" | "macos" | "linux" | ...), para que el
 /// frontend sepa si debe dibujar sus propios controles de ventana o dejar que
 /// el sistema operativo dibuje los suyos (macOS, vía titleBarStyle Overlay).
@@ -15,6 +17,19 @@ fn get_platform() -> &'static str {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                if let Ok(Some(monitor)) = window.current_monitor() {
+                    let work_area = monitor.work_area();
+                    let scale = monitor.scale_factor();
+                    let width = (f64::from(work_area.size.width) / scale * 0.75).round();
+                    let height = (f64::from(work_area.size.height) / scale * 0.75).round();
+                    window.set_size(tauri::LogicalSize::new(width, height))?;
+                    window.center()?;
+                }
+            }
+            Ok(())
+        })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(export::ExportState::default())

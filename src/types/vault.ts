@@ -7,8 +7,6 @@ export interface VaultConfig {
   theme: Theme;
   lastView: ViewMode;
   anaquelOrder: string[];
-  windowWidth: number | null;
-  windowHeight: number | null;
   accentColor: string | null;
   defaultSortKey: string | null;
   lastLibraryKind: string | null;
