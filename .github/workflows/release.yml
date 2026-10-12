@@ -2,8 +2,7 @@ name: Release
 
 # Se dispara al empujar una etiqueta con forma vX.Y.Z (por ejemplo v1.2.0).
 # Compila Anaquel para Windows y Linux, y publica un Release en GitHub como
-# borrador con los instaladores ya adjuntos — solo queda revisar/escribir las
-# notas de la versión y pulsar "Publish" desde la propia web de GitHub.
+# publicado con los instaladores para Windows y Linux.
 on:
   push:
     tags:
@@ -62,6 +61,10 @@ jobs:
           releaseBody: |
             ## Novedades
 
-            _Completa esta sección con un resumen de los cambios antes de publicar el Release._
-          releaseDraft: true
+            - La ventana se abre centrada y ocupa el 90 % del área útil de la pantalla.
+            - La biblioteca usa SQLite con tablas separadas para libros y audiolibros; la configuración visual sigue en JSON.
+            - Valoración numérica del 1 al 10 y estados simplificados.
+            - Interfaz simplificada: sin saga, favoritos, editorial, páginas ni duración de audiolibros.
+            - Incluye instaladores para Windows y Linux.
+          releaseDraft: false
           prerelease: false
