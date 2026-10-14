@@ -8,12 +8,15 @@ export function normalizeSortKey(key: string | null): SortKey {
 }
 export function sortLabel(key: SortKey): string { return SORT_LABEL[key]; }
 export const ESTADO_ORDER: EstadoLectura[] = ["leyendo", "pendiente", "leido", "abandonado"];
+export function compareBooksWithinState(a: Book, b: Book): number {
+  return a.autor.localeCompare(b.autor, "es") || a.titulo.localeCompare(b.titulo, "es");
+}
 export function sortBooks(books: Book[], key: SortKey): Book[] {
   return [...books].sort((a,b) => {
     const title = () => a.titulo.localeCompare(b.titulo, "es");
     if (key === "autor") return a.autor.localeCompare(b.autor, "es") || title();
     if (key === "valoracion") return (b.valoracion ?? -1) - (a.valoracion ?? -1) || title();
-    if (key === "estado") return ESTADO_ORDER.indexOf(a.estado) - ESTADO_ORDER.indexOf(b.estado) || title();
+    if (key === "estado") return ESTADO_ORDER.indexOf(a.estado) - ESTADO_ORDER.indexOf(b.estado) || compareBooksWithinState(a, b);
     return title();
   });
 }

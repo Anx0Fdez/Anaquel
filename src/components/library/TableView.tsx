@@ -3,6 +3,7 @@ import { RotateCcw } from "lucide-react";
 import type { Book, LibraryKind } from "../../types/book";
 import type { BookGroup, GroupField } from "../../lib/grouping";
 import { groupBooks } from "../../lib/grouping";
+import { compareBooksWithinState } from "../../lib/sort";
 import { StatusPill } from "./StatusPill";
 import { RatingDisplay } from "../ui/RatingDisplay";
 import "./TableView.css";
@@ -80,6 +81,9 @@ export function TableView({ books, libraryKind, onSelect, onBackgroundClick }: T
         typeof va === "number" && typeof vb === "number"
           ? va - vb
           : String(va).localeCompare(String(vb), "es");
+      if (effectiveSortKey === "estado" && cmp === 0) {
+        return compareBooksWithinState(a, b);
+      }
       return sortDir === "asc" ? cmp : -cmp;
     });
     return copy;
