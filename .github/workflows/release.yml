@@ -48,9 +48,23 @@ jobs:
         shell: pwsh
         run: |
           choco install nasm --yes --no-progress
-          $nasm = Get-ChildItem "$env:ChocolateyInstall\lib\nasm" -Filter nasm.exe -Recurse | Select-Object -First 1
+          $nasm = Get-Command nasm.exe -ErrorAction SilentlyContinue
+          if (-not $nasm) {
+            $searchRoots = @(
+              "$env:ChocolateyInstall\bin",
+              "$env:ProgramFiles\NASM",
+              "${env:ProgramFiles(x86)}\NASM"
+            )
+            foreach ($root in $searchRoots) {
+              if (Test-Path $root) {
+                $nasm = Get-ChildItem $root -Filter nasm.exe -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                if ($nasm) { break }
+              }
+            }
+          }
           if (-not $nasm) { throw "No se encontró nasm.exe tras instalar NASM" }
-          $nasm.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          $nasmPath = if ($nasm.Path) { $nasm.Path } else { $nasm.FullName }
+          Split-Path $nasmPath -Parent | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Instalar dependencias del frontend
         run: npm ci
