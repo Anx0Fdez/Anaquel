@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ChevronDown, ChevronRight, RotateCcw, ShoppingBag } from "lucide-react";
 import type { Book, EstadoLectura, GridCardSize, LibraryKind } from "../../types/book";
 import type { SortKey } from "../../lib/sort";
@@ -35,8 +35,28 @@ function BookSpine({
   delay: number;
   onSelect?: (book: Book) => void;
 }) {
+  const cardRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!selected) return;
+
+    // Al seleccionar, el panel de detalle estrecha la cuadrícula durante su
+    // animación. Esperamos a que termine para dejar también visible el halo,
+    // no solo el rectángulo de la tarjeta.
+    const timeout = window.setTimeout(() => {
+      cardRef.current?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "nearest",
+        inline: "nearest",
+      });
+    }, 280);
+
+    return () => window.clearTimeout(timeout);
+  }, [selected]);
+
   return (
     <button
+      ref={cardRef}
       className={`book-spine${selected ? " book-spine--active" : ""}`}
       style={{ animationDelay: `${delay}ms` }}
       onClick={() => onSelect?.(book)}

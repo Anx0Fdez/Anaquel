@@ -1,7 +1,7 @@
 .grid-view-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 22px 22px 4px;
+  padding: 32px;
 }
 
 .grid-view {
@@ -95,6 +95,10 @@
 
 .grid-group-content-inner {
   min-height: 0;
+  overflow: visible;
+}
+
+.grid-group-content-shell--collapsed .grid-group-content-inner {
   overflow: hidden;
 }
 
@@ -218,6 +222,7 @@
 
 .book-spine--active {
   opacity: 1;
+  scroll-margin: 34px;
   border-color: var(--border-strong);
   background: var(--bg-elevated);
   box-shadow:
