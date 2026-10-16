@@ -4,6 +4,7 @@ mod metadata;
 mod updater;
 mod vault;
 
+use tauri::webview::PageLoadEvent;
 use tauri::Manager;
 
 /// Plataforma del proceso ("windows" | "macos" | "linux" | ...), para que el
@@ -29,6 +30,11 @@ pub fn run() {
                 }
             }
             Ok(())
+        })
+        .on_page_load(|webview, payload| {
+            if payload.event() == PageLoadEvent::Finished {
+                let _ = webview.window().show();
+            }
         })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
