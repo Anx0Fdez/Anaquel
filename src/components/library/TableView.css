@@ -170,8 +170,8 @@
   display: flex;
   align-items: center;
   width: 100%;
-  gap: 10px;
-  padding: 0 16px 12px;
+  gap: clamp(10px, 2vw, 22px);
+  padding: 4px 16px 12px;
   color: var(--accent);
   text-align: left;
 }
@@ -196,29 +196,34 @@ button.table-group-header:focus-visible {
 .table-group-header-label {
   flex-shrink: 0;
   font-family: var(--font-serif);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent);
-  letter-spacing: 0.2px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.table-group-header-center {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .table-group-header-line {
   flex: 1;
-  height: 2px;
+  min-width: 12px;
+  height: 1px;
   border-radius: 999px;
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--accent) 58%, var(--border-strong)),
-    color-mix(in srgb, var(--accent) 18%, var(--border-strong)) 36%,
-    color-mix(in srgb, var(--border-strong) 45%, transparent) 78%,
-    transparent 100%
-  );
-  box-shadow: 0 0 9px color-mix(in srgb, var(--accent) 22%, transparent);
-  transition: filter 180ms ease, box-shadow 180ms ease;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 48%, var(--border-strong)) 48%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 18%, transparent);
+  transition: opacity 180ms ease, box-shadow 180ms ease;
 }
 
 button.table-group-header:hover .table-group-header-line {
-  filter: brightness(1.25);
+  opacity: 1;
   box-shadow: 0 0 13px color-mix(in srgb, var(--accent) 34%, transparent);
 }
 

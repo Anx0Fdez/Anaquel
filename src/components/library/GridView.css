@@ -47,7 +47,6 @@
 .grid-group-header {
   display: flex;
   align-items: center;
-  gap: 14px;
   margin: 0 0 16px;
 }
 
@@ -56,8 +55,8 @@
   width: 100%;
   flex: 1;
   align-items: center;
-  gap: 11px;
-  padding: 6px 8px;
+  gap: clamp(10px, 2vw, 22px);
+  padding: 8px 8px;
   border: 0;
   border-radius: 9px;
   background: transparent;
@@ -129,29 +128,34 @@
 .grid-group-header-label {
   flex-shrink: 0;
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--accent);
-  letter-spacing: 0.2px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.grid-group-header-center {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
 }
 
 .grid-group-header-line {
   flex: 1;
-  height: 2px;
+  min-width: 12px;
+  height: 1px;
   border-radius: 999px;
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--accent) 58%, var(--border-strong)),
-    color-mix(in srgb, var(--accent) 18%, var(--border-strong)) 36%,
-    color-mix(in srgb, var(--border-strong) 45%, transparent) 78%,
-    transparent 100%
-  );
-  box-shadow: 0 0 9px color-mix(in srgb, var(--accent) 22%, transparent);
-  transition: filter 180ms ease, box-shadow 180ms ease;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 48%, var(--border-strong)) 48%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 18%, transparent);
+  transition: opacity 180ms ease, box-shadow 180ms ease;
 }
 
 .grid-group-toggle:hover .grid-group-header-line {
-  filter: brightness(1.25);
+  opacity: 1;
   box-shadow: 0 0 13px color-mix(in srgb, var(--accent) 34%, transparent);
 }
 

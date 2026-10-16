@@ -125,13 +125,17 @@ export function GridView({
                     : [...collapsedStatusGroups, status!],
                 )}
               >
-                {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                <span className="grid-group-header-label">{group.label}</span>
-                <span className="grid-group-count">{group.books.length}</span>
+                <span className="grid-group-header-line" aria-hidden="true" />
+                <span className="grid-group-header-center">
+                  {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                  <span className="grid-group-header-label">{group.label}</span>
+                  <span className="grid-group-count">{group.books.length}</span>
+                </span>
                 <span className="grid-group-header-line" aria-hidden="true" />
               </button>
               ) : (
                 <>
+                  <span className="grid-group-header-line" aria-hidden="true" />
                   <span className="grid-group-header-label">{group.label}</span>
                   <span className="grid-group-header-line" aria-hidden="true" />
                 </>

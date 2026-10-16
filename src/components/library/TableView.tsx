@@ -217,13 +217,17 @@ export function TableView({
                           aria-controls={contentId}
                           onClick={setGroupCollapsed}
                         >
-                          {collapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-                          <span className="table-group-header-label">{group.label}</span>
-                          <span className="table-group-count">{group.books.length}</span>
+                          <span className="table-group-header-line" aria-hidden="true" />
+                          <span className="table-group-header-center">
+                            {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                            <span className="table-group-header-label">{group.label}</span>
+                            <span className="table-group-count">{group.books.length}</span>
+                          </span>
                           <span className="table-group-header-line" aria-hidden="true" />
                         </button>
                       ) : (
                         <div className="table-group-header">
+                          <span className="table-group-header-line" aria-hidden="true" />
                           <span className="table-group-header-label">{group.label}</span>
                           <span className="table-group-header-line" aria-hidden="true" />
                         </div>
