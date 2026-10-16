@@ -49,10 +49,7 @@
   flex: 1;
   padding: 7px 0;
   border: 1px solid transparent;
-  /* Inset desde el borde del contenedor = su border (1px) + su padding (3px);
-     restarlo del radio del contenedor es lo que hace que las dos curvas
-     queden concéntricas en vez de "no encajar" en la esquina. */
-  border-radius: calc(var(--radius-md) - 4px);
+  border-radius: calc(var(--radius-md) - 2px);
   background: transparent;
   color: var(--text-faint);
   font-size: 12.5px;
@@ -293,6 +290,7 @@
 }
 
 .sidebar-settings-colors {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -325,17 +323,6 @@
   justify-content: center;
   background: conic-gradient(from 180deg, #fe9d16, #4c86e0, #4fa876, #9c7fe0, #e0577f, #d9c53f, #fe9d16);
   overflow: hidden;
-}
-
-.sidebar-color-swatch--custom input[type="color"] {
-  position: absolute;
-  inset: -4px;
-  width: calc(100% + 8px);
-  height: calc(100% + 8px);
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  opacity: 0;
 }
 
 .sidebar-apikey-row {

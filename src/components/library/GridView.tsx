@@ -137,17 +137,25 @@ export function GridView({
                 </>
               )}
             </h2>
-            <div id={contentId} className={`${gridClass}${collapsed ? " grid-group-content--collapsed" : ""}`}>
-              {group.books.map((book, i) => (
-                <BookSpine
-                  key={book.id}
-                  book={book}
-                  vaultPath={vaultPath}
-                  selected={book.id === selectedBookId}
-                  delay={Math.min(i, 16) * 28}
-                  onSelect={onSelect}
-                />
-              ))}
+            <div
+              id={contentId}
+              className={`grid-group-content-shell${collapsed ? " grid-group-content-shell--collapsed" : ""}`}
+              aria-hidden={collapsed}
+            >
+              <div className="grid-group-content-inner">
+                <div className={gridClass}>
+                  {group.books.map((book, i) => (
+                    <BookSpine
+                      key={book.id}
+                      book={book}
+                      vaultPath={vaultPath}
+                      selected={book.id === selectedBookId}
+                      delay={Math.min(i, 16) * 28}
+                      onSelect={onSelect}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </section>
           );

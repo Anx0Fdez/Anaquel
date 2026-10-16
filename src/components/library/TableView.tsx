@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, RotateCcw } from "lucide-react";
 import type { Book, EstadoLectura, LibraryKind } from "../../types/book";
 import type { BookGroup, GroupField } from "../../lib/grouping";
@@ -79,7 +79,13 @@ export function TableView({
   const columns = audio ? COLUMNS.filter((c) => c.key !== "relectura") : COLUMNS;
   const [sortKey, setSortKey] = useState<SortKey>("titulo");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [animatedGroups, setAnimatedGroups] = useState<Record<string, "opening" | "closing">>({});
+  const animationTimers = useRef(new Map<string, number>());
   const effectiveSortKey = audio && sortKey === "relectura" ? "titulo" : sortKey;
+
+  useEffect(() => () => {
+    animationTimers.current.forEach((timer) => window.clearTimeout(timer));
+  }, []);
 
   const sorted = useMemo(() => {
     const copy = [...books];
@@ -107,9 +113,13 @@ export function TableView({
     [sorted, groupField, audio],
   );
 
-  function renderRow(book: Book) {
+  function renderRow(book: Book, animation?: "opening" | "closing") {
     return (
-      <tr key={book.id} className="table-body-row" onClick={() => onSelect?.(book)}>
+      <tr
+        key={book.id}
+        className={`table-body-row${animation ? ` table-body-row--${animation}` : ""}`}
+        onClick={() => onSelect?.(book)}
+      >
         <td className="table-cell table-cell--title">{book.titulo}</td>
         <td className="table-cell">{book.autor}</td>
         <td className="table-cell">
@@ -174,6 +184,27 @@ export function TableView({
               const status = isStatusGroup ? group.key as EstadoLectura : null;
               const collapsed = status !== null && collapsedStatusGroups.includes(status);
               const contentId = `table-group-content-${index}`;
+              const animation = animatedGroups[group.key];
+              const setGroupCollapsed = () => {
+                const nextAnimation = collapsed ? "opening" : "closing";
+                const previousTimer = animationTimers.current.get(group.key);
+                if (previousTimer !== undefined) window.clearTimeout(previousTimer);
+                setAnimatedGroups((current) => ({ ...current, [group.key]: nextAnimation }));
+                const timer = window.setTimeout(() => {
+                  setAnimatedGroups((current) => {
+                    const next = { ...current };
+                    delete next[group.key];
+                    return next;
+                  });
+                  animationTimers.current.delete(group.key);
+                }, 250);
+                animationTimers.current.set(group.key, timer);
+                onCollapsedStatusGroupsChange(
+                  collapsed
+                    ? collapsedStatusGroups.filter((item) => item !== status)
+                    : [...collapsedStatusGroups, status!],
+                );
+              };
               return (
                 <tbody key={group.key} className="table-group">
                   <tr className="table-group-header-row">
@@ -184,11 +215,7 @@ export function TableView({
                           className="table-group-header"
                           aria-expanded={!collapsed}
                           aria-controls={contentId}
-                          onClick={() => onCollapsedStatusGroupsChange(
-                            collapsed
-                              ? collapsedStatusGroups.filter((item) => item !== status)
-                              : [...collapsedStatusGroups, status!],
-                          )}
+                          onClick={setGroupCollapsed}
                         >
                           {collapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
                           <span className="table-group-header-label">{group.label}</span>
@@ -203,12 +230,15 @@ export function TableView({
                       )}
                     </td>
                   </tr>
-                  {!collapsed && group.books.map(renderRow)}
+                  {(!collapsed || animation === "closing") && group.books.map((book) => renderRow(
+                    book,
+                    animation === "closing" || animation === "opening" ? animation : undefined,
+                  ))}
                 </tbody>
               );
             })
           ) : (
-            <tbody>{sorted.map(renderRow)}</tbody>
+            <tbody>{sorted.map((book) => renderRow(book))}</tbody>
           )}
         </table>
         {sorted.length === 0 && <div className="table-empty">No se han encontrado libros.</div>}

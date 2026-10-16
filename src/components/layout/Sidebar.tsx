@@ -22,6 +22,7 @@ import type { NavFilter } from "../../state/filters";
 import { filterKey, matchesFilter } from "../../state/filters";
 import { useDismiss } from "../../lib/useDismiss";
 import { validateGoogleBooksApiKey } from "../../lib/metadata";
+import { AccentColorPicker } from "./AccentColorPicker";
 import "./Sidebar.css";
 
 interface YearEntry {
@@ -102,8 +103,12 @@ export function Sidebar({
   const navItems = navItemsFor(libraryKind);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [accentPickerOpen, setAccentPickerOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   useDismiss(settingsOpen, settingsRef, () => setSettingsOpen(false));
+  useEffect(() => {
+    if (!settingsOpen) setAccentPickerOpen(false);
+  }, [settingsOpen]);
 
   const [apiKeyDraft, setApiKeyDraft] = useState(googleBooksApiKey ?? "");
   const [apiKeySaved, setApiKeySaved] = useState(false);
@@ -263,13 +268,21 @@ export function Sidebar({
                     onClick={() => onAccentColorChange(color === "#fe9d16" ? null : color)}
                   />
                 ))}
-                <label className="sidebar-color-swatch sidebar-color-swatch--custom" title="Color personalizado">
-                  <input
-                    type="color"
+                <button
+                  type="button"
+                  className={`sidebar-color-swatch sidebar-color-swatch--custom${accentColor && !ACCENT_PRESETS.includes(accentColor.toLowerCase()) ? " sidebar-color-swatch--active" : ""}`}
+                  title="Elegir color personalizado"
+                  aria-label="Elegir color de acento personalizado"
+                  aria-expanded={accentPickerOpen}
+                  onClick={() => setAccentPickerOpen((open) => !open)}
+                />
+                {accentPickerOpen && (
+                  <AccentColorPicker
                     value={accentColor ?? "#fe9d16"}
-                    onChange={(e) => onAccentColorChange(e.target.value)}
+                    onChange={onAccentColorChange}
+                    onClose={() => setAccentPickerOpen(false)}
                   />
-                </label>
+                )}
               </div>
               <div className="sidebar-settings-heading">API key de Google Books</div>
               <form className="sidebar-apikey-row" onSubmit={handleSaveApiKey}>

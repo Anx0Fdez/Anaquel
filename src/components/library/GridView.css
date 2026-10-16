@@ -56,17 +56,55 @@
   width: 100%;
   flex: 1;
   align-items: center;
-  gap: 10px;
-  padding: 0;
+  gap: 11px;
+  padding: 6px 8px;
   border: 0;
+  border-radius: 9px;
   background: transparent;
-  color: var(--accent);
+  color: var(--text-muted);
   cursor: pointer;
   text-align: left;
+  transition: background 180ms ease, color 180ms ease;
 }
 
-.grid-group-content--collapsed {
-  display: none !important;
+.grid-group-toggle:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  color: var(--accent);
+}
+
+.grid-group-content-shell {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    grid-template-rows 280ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    opacity 180ms ease,
+    visibility 0s;
+}
+
+.grid-group-content-shell--collapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    grid-template-rows 280ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    opacity 180ms ease,
+    visibility 0s 280ms;
+}
+
+.grid-group-content-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-group-content-shell,
+  .grid-group-content-shell--collapsed {
+    transition-duration: 1ms;
+    transition-delay: 0s;
+  }
 }
 
 .grid-group-toggle:focus-visible {
@@ -77,23 +115,44 @@
 
 .grid-group-count {
   flex-shrink: 0;
-  color: var(--text-faint);
-  font: 600 11px var(--font-sans);
+  min-width: 22px;
+  padding: 3px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+  font: 700 10px var(--font-sans);
+  line-height: 1.2;
+  text-align: center;
 }
 
 .grid-group-header-label {
   flex-shrink: 0;
   font-family: var(--font-serif);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--accent);
-  letter-spacing: 0.1px;
+  letter-spacing: 0.2px;
 }
 
 .grid-group-header-line {
   flex: 1;
-  height: 1px;
-  background: linear-gradient(to right, var(--border-strong), transparent 92%);
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) 58%, var(--border-strong)),
+    color-mix(in srgb, var(--accent) 18%, var(--border-strong)) 36%,
+    color-mix(in srgb, var(--border-strong) 45%, transparent) 78%,
+    transparent 100%
+  );
+  box-shadow: 0 0 9px color-mix(in srgb, var(--accent) 22%, transparent);
+  transition: filter 180ms ease, box-shadow 180ms ease;
+}
+
+.grid-group-toggle:hover .grid-group-header-line {
+  filter: brightness(1.25);
+  box-shadow: 0 0 13px color-mix(in srgb, var(--accent) 34%, transparent);
 }
 
 @keyframes spineIn {
