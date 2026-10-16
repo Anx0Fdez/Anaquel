@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -40,6 +41,10 @@ pub struct VaultConfig {
     /// es gratuita y se saca en la Google Cloud Console.
     #[serde(default)]
     pub google_books_api_key: Option<String>,
+    /// Estados plegados por tipo de biblioteca. Vacío significa que todos
+    /// los grupos aparecen desplegados por defecto.
+    #[serde(default)]
+    pub collapsed_status_groups: BTreeMap<String, Vec<String>>,
     /// Marcador histórico: los JSON importados con true usan escala 1–5.
     /// Las migraciones actuales se controlan con user_version en SQLite.
     #[serde(default)]
@@ -57,6 +62,7 @@ impl Default for VaultConfig {
             last_library_kind: None,
             grid_card_size: None,
             google_books_api_key: None,
+            collapsed_status_groups: BTreeMap::new(),
             rating_migrated: true,
         }
     }

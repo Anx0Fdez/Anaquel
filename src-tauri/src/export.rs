@@ -25,6 +25,7 @@ pub fn cancel_export(state: tauri::State<ExportState>) {
 fn estado_label(estado: &EstadoLectura) -> &'static str {
     match estado {
         EstadoLectura::Pendiente => "Pendiente",
+        EstadoLectura::MasAdelante => "Más adelante",
         EstadoLectura::Leyendo => "Leyendo",
         EstadoLectura::Leido => "Leído",
         EstadoLectura::Abandonado => "Abandonado",

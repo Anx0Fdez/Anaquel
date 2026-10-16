@@ -1,5 +1,5 @@
 // Espejo en TypeScript de la struct Book de src-tauri/src/library.rs (ver docs/library-format.md).
-export type EstadoLectura = "pendiente" | "leyendo" | "leido" | "abandonado";
+export type EstadoLectura = "pendiente" | "mas_adelante" | "leyendo" | "leido" | "abandonado";
 
 export type FormatoLibro = "libro" | "audiolibro";
 
@@ -40,6 +40,7 @@ export type LibraryKind = "libros" | "audiolibros";
 
 export const ESTADO_LABEL: Record<EstadoLectura, string> = {
   pendiente: "Pendiente",
+  mas_adelante: "Más adelante",
   leyendo: "Leyendo",
   leido: "Leído",
   abandonado: "Abandonado",
@@ -47,6 +48,7 @@ export const ESTADO_LABEL: Record<EstadoLectura, string> = {
 
 const ESTADO_LABEL_AUDIO: Partial<Record<EstadoLectura, string>> = {
   pendiente: "Pendiente",
+  mas_adelante: "Más adelante",
   leyendo: "Escuchando",
   leido: "Escuchado",
 };
@@ -56,7 +58,7 @@ export function estadoLabel(estado: EstadoLectura, audio: boolean): string {
   return (audio && ESTADO_LABEL_AUDIO[estado]) || ESTADO_LABEL[estado];
 }
 
-export const ESTADOS_LECTURA: EstadoLectura[] = ["pendiente", "leyendo", "leido", "abandonado"];
+export const ESTADOS_LECTURA: EstadoLectura[] = ["pendiente", "mas_adelante", "leyendo", "leido", "abandonado"];
 
 export const FORMATO_LABEL: Record<FormatoLibro, string> = {
   libro: "Libro",

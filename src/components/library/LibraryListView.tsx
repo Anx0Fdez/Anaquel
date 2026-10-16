@@ -3,7 +3,7 @@ import { Topbar } from "../layout/Topbar";
 import { TableView } from "./TableView";
 import { GridView } from "./GridView";
 import { AddBookDialog } from "./AddBookDialog";
-import type { Book, GridCardSize, LibraryKind, ViewMode } from "../../types/book";
+import type { Book, EstadoLectura, GridCardSize, LibraryKind, ViewMode } from "../../types/book";
 import type { SortKey } from "../../lib/sort";
 
 interface LibraryListViewProps {
@@ -20,6 +20,8 @@ interface LibraryListViewProps {
   onSortKeyChange: (key: SortKey) => void;
   gridCardSize: GridCardSize;
   onGridCardSizeChange: (size: GridCardSize) => void;
+  collapsedStatusGroups: EstadoLectura[];
+  onCollapsedStatusGroupsChange: (statuses: EstadoLectura[]) => void;
   onAddBook: (book: Book) => void;
   onSelectBook: (book: Book) => void;
   selectedBookId: string | null;
@@ -40,6 +42,8 @@ export function LibraryListView({
   onSortKeyChange,
   gridCardSize,
   onGridCardSizeChange,
+  collapsedStatusGroups,
+  onCollapsedStatusGroupsChange,
   onAddBook,
   onSelectBook,
   selectedBookId,
@@ -63,7 +67,14 @@ export function LibraryListView({
       />
 
       {viewMode === "table" && (
-        <TableView books={books} libraryKind={libraryKind} onSelect={onSelectBook} onBackgroundClick={onBackgroundClick} />
+        <TableView
+          books={books}
+          libraryKind={libraryKind}
+          collapsedStatusGroups={collapsedStatusGroups}
+          onCollapsedStatusGroupsChange={onCollapsedStatusGroupsChange}
+          onSelect={onSelectBook}
+          onBackgroundClick={onBackgroundClick}
+        />
       )}
       {viewMode === "grid" && (
         <GridView
@@ -72,6 +83,8 @@ export function LibraryListView({
           libraryKind={libraryKind}
           sortKey={sortKey}
           cardSize={gridCardSize}
+          collapsedStatusGroups={collapsedStatusGroups}
+          onCollapsedStatusGroupsChange={onCollapsedStatusGroupsChange}
           onSelect={onSelectBook}
           selectedBookId={selectedBookId}
           onBackgroundClick={onBackgroundClick}

@@ -6,7 +6,7 @@ import { ExportModal } from "./library/ExportModal";
 import { loadBooks, saveBooks } from "../lib/library";
 import { saveVaultConfig } from "../lib/vault";
 import { pickExportPath, runExport, cancelExport } from "../lib/export";
-import type { Book, GridCardSize, LibraryKind, Theme, ViewMode } from "../types/book";
+import type { Book, EstadoLectura, GridCardSize, LibraryKind, Theme, ViewMode } from "../types/book";
 import type { VaultInfo } from "../types/vault";
 import type { NavFilter } from "../state/filters";
 import { matchesFilter, matchesSearch, readingYear } from "../state/filters";
@@ -35,6 +35,9 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
   const exportCancelledRef = useRef(false);
   const [accentColor, setAccentColor] = useState<string | null>(vault.config.accentColor);
   const [googleBooksApiKey, setGoogleBooksApiKey] = useState<string | null>(vault.config.googleBooksApiKey);
+  const [collapsedStatusGroups, setCollapsedStatusGroups] = useState<Partial<Record<LibraryKind, EstadoLectura[]>>>(
+    vault.config.collapsedStatusGroups ?? {},
+  );
   const [gridCardSize, setGridCardSize] = useState<GridCardSize>(
     (vault.config.gridCardSize as GridCardSize | null) ?? "mediano",
   );
@@ -79,6 +82,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
       lastLibraryKind: libraryKind,
       gridCardSize,
       googleBooksApiKey,
+      collapsedStatusGroups,
     }).catch(() => {
       // si falla el guardado, la próxima interacción del usuario lo reintentará igualmente
     });
@@ -92,6 +96,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
     libraryKind,
     gridCardSize,
     googleBooksApiKey,
+    collapsedStatusGroups,
   ]);
 
   function persistBooks(updated: Book[]) {
@@ -276,6 +281,10 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
               onSortKeyChange={setSortKey}
               gridCardSize={gridCardSize}
               onGridCardSizeChange={setGridCardSize}
+              collapsedStatusGroups={collapsedStatusGroups[libraryKind] ?? []}
+              onCollapsedStatusGroupsChange={(statuses) =>
+                setCollapsedStatusGroups((current) => ({ ...current, [libraryKind]: statuses }))
+              }
               onAddBook={(book) => persistBooks([book, ...books])}
               onSelectBook={(book) => setSelectedBookId(book.id)}
               selectedBookId={selectedBookId}

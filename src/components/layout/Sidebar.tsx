@@ -4,6 +4,7 @@ import {
   BookMarked,
   BookOpen,
   CalendarDays,
+  CalendarClock,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -63,6 +64,7 @@ function navItemsFor(kind: LibraryKind): { filter: NavFilter; label: string; ico
     { filter: { kind: "all" }, label: "Biblioteca", icon: Library, showCount: false },
     { filter: { kind: "estado", estado: "leyendo" }, label: audio ? "Escuchando" : "Leyendo", icon: BookOpen, showCount: true },
     { filter: { kind: "estado", estado: "pendiente" }, label: "Pendiente", icon: BookMarked, showCount: true },
+    { filter: { kind: "estado", estado: "mas_adelante" }, label: "Más adelante", icon: CalendarClock, showCount: true },
     { filter: { kind: "estado", estado: "leido" }, label: audio ? "Escuchados" : "Leídos", icon: CheckCircle2, showCount: true },
   ];
 }

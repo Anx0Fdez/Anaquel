@@ -32,6 +32,11 @@
   background: var(--status-pendiente-bg);
 }
 
+.status-pill--mas_adelante {
+  color: var(--status-mas-adelante);
+  background: var(--status-mas-adelante-bg);
+}
+
 .status-pill--audiolibro {
   color: var(--status-audiolibro);
   background: var(--status-audiolibro-bg);

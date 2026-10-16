@@ -9,7 +9,7 @@ Cada dato se lee y escribe en su columna; no se guardan documentos JSON en SQLit
 | id, position | Identificador estable y orden |
 | titulo, autor | Texto obligatorio |
 | isbn, portada | ISBN y ruta relativa de portada; pueden ser NULL |
-| estado | pendiente, leyendo, leido o abandonado |
+| estado | pendiente, mas_adelante, leyendo, leido o abandonado |
 | formato | libro en books; audiolibro en audiobooks |
 | valoracion | Entero entre 1 y 10; NULL significa sin valorar |
 | comprar_fisico, relectura | Indicadores booleanos |
@@ -17,7 +17,9 @@ Cada dato se lee y escribe en su columna; no se guardan documentos JSON en SQLit
 | anadido, inicio_lectura, fin_lectura | Fechas YYYY-MM-DD; inicio y fin opcionales |
 
 La interfaz muestra «Escuchando» y «Escuchado» para los audiolibros.
-«Pendiente» tiene el mismo nombre para ambos tipos. La búsqueda usa título y autor;
+«Pendiente» y «Más adelante» tienen el mismo nombre para ambos tipos. Los grupos
+de estado en cuadrícula y tabla se pueden plegar y aparecen desplegados al abrirlos.
+La búsqueda usa título y autor;
 la ordenación usa título, autor, valoración y estado. El Excel contiene hojas
 separadas para libros y audiolibros con puntuación numérica.
 

@@ -7,7 +7,7 @@ export function normalizeSortKey(key: string | null): SortKey {
   return key && Object.prototype.hasOwnProperty.call(SORT_LABEL, key) ? key as SortKey : "titulo";
 }
 export function sortLabel(key: SortKey): string { return SORT_LABEL[key]; }
-export const ESTADO_ORDER: EstadoLectura[] = ["leyendo", "pendiente", "leido", "abandonado"];
+export const ESTADO_ORDER: EstadoLectura[] = ["leyendo", "pendiente", "mas_adelante", "leido", "abandonado"];
 export function compareBooksWithinState(a: Book, b: Book): number {
   return a.autor.localeCompare(b.autor, "es") || a.titulo.localeCompare(b.titulo, "es");
 }

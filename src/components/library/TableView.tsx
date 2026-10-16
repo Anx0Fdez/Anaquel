@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { RotateCcw } from "lucide-react";
-import type { Book, LibraryKind } from "../../types/book";
+import { ChevronDown, ChevronRight, RotateCcw } from "lucide-react";
+import type { Book, EstadoLectura, LibraryKind } from "../../types/book";
 import type { BookGroup, GroupField } from "../../lib/grouping";
 import { groupBooks } from "../../lib/grouping";
 import { compareBooksWithinState } from "../../lib/sort";
@@ -61,11 +61,20 @@ function sortValue(book: Book, key: SortKey): string | number {
 interface TableViewProps {
   books: Book[];
   libraryKind: LibraryKind;
+  collapsedStatusGroups: EstadoLectura[];
+  onCollapsedStatusGroupsChange: (statuses: EstadoLectura[]) => void;
   onSelect?: (book: Book) => void;
   onBackgroundClick?: () => void;
 }
 
-export function TableView({ books, libraryKind, onSelect, onBackgroundClick }: TableViewProps) {
+export function TableView({
+  books,
+  libraryKind,
+  collapsedStatusGroups,
+  onCollapsedStatusGroupsChange,
+  onSelect,
+  onBackgroundClick,
+}: TableViewProps) {
   const audio = libraryKind === "audiolibros";
   const columns = audio ? COLUMNS.filter((c) => c.key !== "relectura") : COLUMNS;
   const [sortKey, setSortKey] = useState<SortKey>("titulo");
@@ -160,19 +169,44 @@ export function TableView({ books, libraryKind, onSelect, onBackgroundClick }: T
             </tr>
           </thead>
           {groups ? (
-            groups.map((group) => (
-              <tbody key={group.key} className="table-group">
-                <tr className="table-group-header-row">
-                  <td colSpan={columns.length}>
-                    <div className="table-group-header">
-                      <span className="table-group-header-label">{group.label}</span>
-                      <span className="table-group-header-line" aria-hidden="true" />
-                    </div>
-                  </td>
-                </tr>
-                {group.books.map(renderRow)}
-              </tbody>
-            ))
+            groups.map((group, index) => {
+              const isStatusGroup = groupField === "estado";
+              const status = isStatusGroup ? group.key as EstadoLectura : null;
+              const collapsed = status !== null && collapsedStatusGroups.includes(status);
+              const contentId = `table-group-content-${index}`;
+              return (
+                <tbody key={group.key} className="table-group">
+                  <tr className="table-group-header-row">
+                    <td colSpan={columns.length}>
+                      {isStatusGroup ? (
+                        <button
+                          type="button"
+                          className="table-group-header"
+                          aria-expanded={!collapsed}
+                          aria-controls={contentId}
+                          onClick={() => onCollapsedStatusGroupsChange(
+                            collapsed
+                              ? collapsedStatusGroups.filter((item) => item !== status)
+                              : [...collapsedStatusGroups, status!],
+                          )}
+                        >
+                          {collapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
+                          <span className="table-group-header-label">{group.label}</span>
+                          <span className="table-group-count">{group.books.length}</span>
+                          <span className="table-group-header-line" aria-hidden="true" />
+                        </button>
+                      ) : (
+                        <div className="table-group-header">
+                          <span className="table-group-header-label">{group.label}</span>
+                          <span className="table-group-header-line" aria-hidden="true" />
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                  {!collapsed && group.books.map(renderRow)}
+                </tbody>
+              );
+            })
           ) : (
             <tbody>{sorted.map(renderRow)}</tbody>
           )}

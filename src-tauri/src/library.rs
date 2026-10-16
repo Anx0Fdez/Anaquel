@@ -16,6 +16,7 @@ const LEGACY_AUDIOBOOKS_FILE: &str = "audiobooks.json";
 pub enum EstadoLectura {
     #[serde(alias = "quiero_leer", alias = "pospuesto")]
     Pendiente,
+    MasAdelante,
     Leido,
     Abandonado,
     #[serde(other)]
@@ -71,7 +72,7 @@ const COLUMNS: &str = "id, position, titulo, autor, isbn, portada, estado, forma
 const SCHEMA: &str = "
     id TEXT PRIMARY KEY NOT NULL, position INTEGER NOT NULL,
     titulo TEXT NOT NULL, autor TEXT NOT NULL, isbn TEXT, portada TEXT,
-    estado TEXT NOT NULL CHECK(estado IN ('pendiente','leyendo','leido','abandonado')),
+    estado TEXT NOT NULL CHECK(estado IN ('pendiente','mas_adelante','leyendo','leido','abandonado')),
     formato TEXT NOT NULL CHECK(formato IN ('libro','audiolibro')),
     valoracion INTEGER CHECK(valoracion BETWEEN 1 AND 10),
     comprar_fisico INTEGER NOT NULL, relectura INTEGER NOT NULL,
@@ -108,6 +109,7 @@ fn create_tables(conn: &Connection) -> Result<(), String> {
 fn estado_db(v: &EstadoLectura) -> &'static str {
     match v {
         EstadoLectura::Pendiente => "pendiente",
+        EstadoLectura::MasAdelante => "mas_adelante",
         EstadoLectura::Leyendo => "leyendo",
         EstadoLectura::Leido => "leido",
         EstadoLectura::Abandonado => "abandonado",
@@ -173,6 +175,7 @@ fn read_database_books(conn: &Connection) -> Result<Vec<Book>, String> {
                 portada: r.get(5)?,
                 estado: match estado.as_str() {
                     "pendiente" => EstadoLectura::Pendiente,
+                    "mas_adelante" => EstadoLectura::MasAdelante,
                     "leyendo" => EstadoLectura::Leyendo,
                     "leido" => EstadoLectura::Leido,
                     "abandonado" => EstadoLectura::Abandonado,
@@ -254,10 +257,10 @@ fn migrate(conn: &mut Connection, path: &str) -> Result<(), String> {
     let version: i64 = conn
         .query_row("PRAGMA user_version", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;
-    if version == 4 {
+    if version == 5 {
         return Ok(());
     }
-    if version > 4 {
+    if version > 5 {
         return Err("Esta biblioteca requiere una versión más reciente de Anaquel.".into());
     }
     let tx = conn
@@ -266,7 +269,26 @@ fn migrate(conn: &mut Connection, path: &str) -> Result<(), String> {
     let version: i64 = tx
         .query_row("PRAGMA user_version", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;
+    if version == 5 {
+        return tx.commit().map_err(|e| e.to_string());
+    }
     if version == 4 {
+        for table in ["books", "audiobooks"] {
+            tx.execute_batch(&format!("ALTER TABLE {table} RENAME TO old_{table};"))
+                .map_err(|e| e.to_string())?;
+        }
+        create_tables(&tx)?;
+        for table in ["books", "audiobooks"] {
+            tx.execute_batch(&format!(
+                "INSERT INTO {table} ({COLUMNS})
+                SELECT {COLUMNS} FROM old_{table};
+                DROP TABLE old_{table};"
+            ))
+            .map_err(|e| e.to_string())?;
+        }
+        create_tables(&tx)?;
+        tx.execute_batch("PRAGMA user_version=5;")
+            .map_err(|e| e.to_string())?;
         return tx.commit().map_err(|e| e.to_string());
     }
     tx.execute_batch(
@@ -328,7 +350,7 @@ fn migrate(conn: &mut Connection, path: &str) -> Result<(), String> {
         }
     }
     tx.execute_batch(
-        "INSERT OR REPLACE INTO metadata VALUES ('json_migrated','1'); PRAGMA user_version=4;",
+        "INSERT OR REPLACE INTO metadata VALUES ('json_migrated','1'); PRAGMA user_version=5;",
     )
     .map_err(|e| e.to_string())?;
     tx.commit().map_err(|e| e.to_string())
@@ -345,7 +367,7 @@ fn open_database(path: &str) -> Result<Connection, String> {
     let version: i64 = conn
         .query_row("PRAGMA user_version", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;
-    if existed && version < 4 {
+    if existed && version < 5 {
         let backup = dir.join("backups");
         fs::create_dir_all(&backup).map_err(|e| e.to_string())?;
         let backup = backup.join(format!(
@@ -483,6 +505,46 @@ mod tests {
             .unwrap();
         assert_eq!(v, 0);
     }
+
+    #[test]
+    fn version_four_database_migrates_to_expandable_status_schema() {
+        let mut c = Connection::open_in_memory().unwrap();
+        let old_schema = SCHEMA.replace("'mas_adelante',", "");
+        for (table, kind) in [("books", "libro"), ("audiobooks", "audiolibro")] {
+            c.execute_batch(&format!(
+                "CREATE TABLE {table} ({old_schema}, CHECK(formato = '{kind}'))"
+            ))
+            .unwrap();
+        }
+        c.execute_batch(
+            "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+             INSERT INTO metadata VALUES ('json_migrated','1');
+             PRAGMA user_version=4;",
+        )
+        .unwrap();
+        let original = sample("v4-book", false);
+        insert_books(&c, std::slice::from_ref(&original)).unwrap();
+
+        migrate(&mut c, "unused").unwrap();
+
+        let loaded = read_database_books(&c).unwrap();
+        assert_eq!(loaded.len(), 1);
+        assert_eq!(loaded[0].id, original.id);
+        c.execute(
+            "UPDATE books SET estado='mas_adelante' WHERE id=?1",
+            params![original.id],
+        )
+        .unwrap();
+        let version: i64 = c
+            .query_row("PRAGMA user_version", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(version, 5);
+        assert_eq!(
+            read_database_books(&c).unwrap()[0].estado,
+            EstadoLectura::MasAdelante
+        );
+    }
+
     #[test]
     fn numeric_roundtrip_and_constraints() {
         let c = Connection::open_in_memory().unwrap();

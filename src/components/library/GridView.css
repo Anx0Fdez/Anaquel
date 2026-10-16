@@ -51,6 +51,36 @@
   margin: 0 0 16px;
 }
 
+.grid-group-toggle {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.grid-group-content--collapsed {
+  display: none !important;
+}
+
+.grid-group-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.grid-group-count {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  font: 600 11px var(--font-sans);
+}
+
 .grid-group-header-label {
   flex-shrink: 0;
   font-family: var(--font-serif);

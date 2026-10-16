@@ -1,7 +1,7 @@
 // Espejo en TypeScript de las structs de src-tauri/src/vault.rs
 // (serde las serializa en camelCase).
 
-import type { Theme, ViewMode } from "./book";
+import type { EstadoLectura, LibraryKind, Theme, ViewMode } from "./book";
 
 export interface VaultConfig {
   theme: Theme;
@@ -12,6 +12,7 @@ export interface VaultConfig {
   lastLibraryKind: string | null;
   gridCardSize: string | null;
   googleBooksApiKey: string | null;
+  collapsedStatusGroups: Partial<Record<LibraryKind, EstadoLectura[]>>;
 }
 
 export interface VaultInfo {

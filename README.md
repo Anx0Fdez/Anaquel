@@ -20,7 +20,7 @@ Anaquel es una aplicación de escritorio (Windows y Linux) para catalogar tu bib
 - **Autocompletado de autor**: sugiere, mientras escribes, valores ya usados en el resto de tu biblioteca (navegable con flechas y Enter), sin dejar de admitir texto libre.
 - **Aviso de posibles duplicados**: al añadir un libro, avisa si ya existe uno con el mismo ISBN o un título y autor muy parecidos.
 - **Portadas**: descargadas automáticamente por ISBN o añadidas a mano desde una imagen local (la anterior se borra sola al reemplazarla).
-- **Estados de lectura**: pendiente, leyendo/escuchando, leído/escuchado y abandonado, con relectura y compra en físico para audiolibros escuchados.
+- **Estados de lectura**: pendiente, más adelante, leyendo/escuchando, leído/escuchado y abandonado. Los grupos de la biblioteca se pueden plegar y aparecen desplegados por defecto.
 - **Valoración numérica de 1 a 10**, con opción de dejar el libro sin valorar.
 - **Dos tipos**: libro y audiolibro.
 - **Comentarios libres por libro**, editados desde una ventana flotante propia en la ficha de detalle.

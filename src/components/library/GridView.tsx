@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { RotateCcw, ShoppingBag } from "lucide-react";
-import type { Book, GridCardSize, LibraryKind } from "../../types/book";
+import { ChevronDown, ChevronRight, RotateCcw, ShoppingBag } from "lucide-react";
+import type { Book, EstadoLectura, GridCardSize, LibraryKind } from "../../types/book";
 import type { SortKey } from "../../lib/sort";
 import type { BookGroup, GroupField } from "../../lib/grouping";
 import { groupBooks } from "../../lib/grouping";
@@ -18,6 +18,8 @@ interface GridViewProps {
   onSelect?: (book: Book) => void;
   selectedBookId?: string | null;
   onBackgroundClick?: () => void;
+  collapsedStatusGroups: EstadoLectura[];
+  onCollapsedStatusGroupsChange: (statuses: EstadoLectura[]) => void;
 }
 
 function BookSpine({
@@ -80,6 +82,8 @@ export function GridView({
   onSelect,
   selectedBookId,
   onBackgroundClick,
+  collapsedStatusGroups,
+  onCollapsedStatusGroupsChange,
 }: GridViewProps) {
   const audio = libraryKind === "audiolibros";
   const groupField = GROUPABLE_FIELDS.includes(sortKey) ? (sortKey as GroupField) : null;
@@ -101,13 +105,39 @@ export function GridView({
       }}
     >
       {groups ? (
-        groups.map((group) => (
+        groups.map((group, index) => {
+          const isStatusGroup = groupField === "estado";
+          const status = isStatusGroup ? group.key as EstadoLectura : null;
+          const collapsed = status !== null && collapsedStatusGroups.includes(status);
+          const contentId = `grid-group-content-${index}`;
+          return (
           <section key={group.key} className="grid-group">
             <h2 className="grid-group-header">
-              <span className="grid-group-header-label">{group.label}</span>
-              <span className="grid-group-header-line" aria-hidden="true" />
+              {isStatusGroup ? (
+              <button
+                type="button"
+                className="grid-group-toggle"
+                aria-expanded={!collapsed}
+                aria-controls={contentId}
+                onClick={() => onCollapsedStatusGroupsChange(
+                  collapsed
+                    ? collapsedStatusGroups.filter((item) => item !== status)
+                    : [...collapsedStatusGroups, status!],
+                )}
+              >
+                {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                <span className="grid-group-header-label">{group.label}</span>
+                <span className="grid-group-count">{group.books.length}</span>
+                <span className="grid-group-header-line" aria-hidden="true" />
+              </button>
+              ) : (
+                <>
+                  <span className="grid-group-header-label">{group.label}</span>
+                  <span className="grid-group-header-line" aria-hidden="true" />
+                </>
+              )}
             </h2>
-            <div className={gridClass}>
+            <div id={contentId} className={`${gridClass}${collapsed ? " grid-group-content--collapsed" : ""}`}>
               {group.books.map((book, i) => (
                 <BookSpine
                   key={book.id}
@@ -120,7 +150,8 @@ export function GridView({
               ))}
             </div>
           </section>
-        ))
+          );
+        })
       ) : (
         <div className={gridClass}>
           {books.map((book, i) => (
