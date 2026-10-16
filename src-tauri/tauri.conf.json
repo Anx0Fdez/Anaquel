@@ -29,7 +29,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "category": "Books",
+    "category": "Reference",
     "shortDescription": "Tu biblioteca personal de libros y audiolibros",
     "longDescription": "Anaquel organiza tus libros y audiolibros en una biblioteca privada almacenada localmente.",
     "licenseFile": "../LICENSE",
