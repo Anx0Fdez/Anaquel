@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Topbar } from "../layout/Topbar";
 import { TableView } from "./TableView";
 import { GridView } from "./GridView";
+import { LibraryStatsView } from "./LibraryStatsView";
 import { AddBookDialog } from "./AddBookDialog";
 import type { Book, EstadoLectura, GridCardSize, LibraryKind, ViewMode } from "../../types/book";
 import type { SortKey } from "../../lib/sort";
@@ -12,6 +13,7 @@ interface LibraryListViewProps {
   googleBooksApiKey: string | null;
   books: Book[];
   allBooks: Book[];
+  analyticsBooks: Book[];
   query: string;
   onQueryChange: (query: string) => void;
   viewMode: ViewMode;
@@ -34,6 +36,7 @@ export function LibraryListView({
   googleBooksApiKey,
   books,
   allBooks,
+  analyticsBooks,
   query,
   onQueryChange,
   viewMode,
@@ -90,6 +93,7 @@ export function LibraryListView({
           onBackgroundClick={onBackgroundClick}
         />
       )}
+      {viewMode === "stats" && <LibraryStatsView books={analyticsBooks} libraryKind={libraryKind} />}
 
       {dialogOpen && (
         <AddBookDialog

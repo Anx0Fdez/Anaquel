@@ -103,6 +103,10 @@
   border: 1px solid var(--border);
 }
 
+.topbar--stats .topbar-viewswitch {
+  margin-left: auto;
+}
+
 .topbar-icon-btn {
   display: inline-flex;
   align-items: center;

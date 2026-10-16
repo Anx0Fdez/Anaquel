@@ -24,7 +24,7 @@ export interface Book {
   fechas: Fechas;
 }
 
-export type ViewMode = "grid" | "table";
+export type ViewMode = "grid" | "table" | "stats";
 
 export type GridCardSize = "grande" | "mediano" | "pequeno";
 

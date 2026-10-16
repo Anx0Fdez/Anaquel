@@ -106,6 +106,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
 
   function handleFilterChange(filter: NavFilter) {
     setNavFilter(filter);
+    setViewMode((current) => current === "stats" ? "grid" : current);
     setSelectedBookId(null);
   }
 
@@ -241,6 +242,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
       <Sidebar
         vaultName={vault.name}
         activeFilter={navFilter}
+        viewMode={viewMode}
         onFilterChange={handleFilterChange}
         books={scopedBooks}
         readingYears={readingYears}
@@ -273,6 +275,7 @@ export function LibraryScreen({ vault, onSwitchVault }: LibraryScreenProps) {
               googleBooksApiKey={googleBooksApiKey}
               books={visibleBooks}
               allBooks={books}
+              analyticsBooks={scopedBooks}
               query={query}
               onQueryChange={setQuery}
               viewMode={viewMode}

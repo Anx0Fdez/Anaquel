@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ArrowUpDown, Grid2x2, Grid3x3, LayoutGrid, Plus, Search, Square, Table2 } from "lucide-react";
+import { ArrowUpDown, ChartNoAxesCombined, Grid2x2, Grid3x3, LayoutGrid, Plus, Search, Square, Table2 } from "lucide-react";
 import type { GridCardSize, LibraryKind, ViewMode } from "../../types/book";
 import { GRID_CARD_SIZE_LABEL } from "../../types/book";
 import type { SortKey } from "../../lib/sort";
@@ -23,6 +23,7 @@ interface TopbarProps {
 const VIEW_MODES: { mode: ViewMode; icon: typeof LayoutGrid; label: string }[] = [
   { mode: "grid", icon: LayoutGrid, label: "Vista de cuadrícula" },
   { mode: "table", icon: Table2, label: "Vista de tabla" },
+  { mode: "stats", icon: ChartNoAxesCombined, label: "Estadísticas de biblioteca" },
 ];
 
 const SORT_KEYS: SortKey[] = ["titulo", "autor", "valoracion", "estado"];
@@ -60,8 +61,8 @@ export function Topbar({
   }, []);
 
   return (
-    <header className="topbar">
-      <div className="topbar-search">
+    <header className={`topbar${viewMode === "stats" ? " topbar--stats" : ""}`}>
+      {viewMode !== "stats" && <div className="topbar-search">
         <Search size={15} strokeWidth={2} />
         <input
           ref={searchRef}
@@ -70,7 +71,7 @@ export function Topbar({
           placeholder="Buscar por título o autor..."
         />
         <kbd className="topbar-search-kbd">Ctrl+F</kbd>
-      </div>
+      </div>}
 
       {viewMode === "grid" && (
         <div className="topbar-cardsize" role="group" aria-label="Tamaño de las tarjetas">
@@ -90,7 +91,7 @@ export function Topbar({
         </div>
       )}
 
-      <div className="topbar-sort">
+      {viewMode !== "stats" && <div className="topbar-sort">
         <ArrowUpDown size={14} strokeWidth={2} />
         <DropdownSelect
           value={sortKey}
@@ -99,7 +100,7 @@ export function Topbar({
           triggerClassName="topbar-sort-trigger"
           align="right"
         />
-      </div>
+      </div>}
 
       <div className="topbar-viewswitch" role="group" aria-label="Modo de vista">
         {VIEW_MODES.map(({ mode, icon: Icon, label }) => (
@@ -115,10 +116,12 @@ export function Topbar({
         ))}
       </div>
 
-      <button className="topbar-add-btn" onClick={onAddBook}>
-        <Plus size={16} strokeWidth={2.25} />
-        {libraryKind === "audiolibros" ? "Añadir audiolibro" : "Añadir libro"}
-      </button>
+      {viewMode !== "stats" && (
+        <button className="topbar-add-btn" onClick={onAddBook}>
+          <Plus size={16} strokeWidth={2.25} />
+          {libraryKind === "audiolibros" ? "Añadir audiolibro" : "Añadir libro"}
+        </button>
+      )}
     </header>
   );
 }

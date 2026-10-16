@@ -284,6 +284,7 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  margin-right: 8px;
 }
 
 .grid-empty {

@@ -1,0 +1,10 @@
+.rating-display {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.35px;
+  line-height: 1;
+  text-shadow: 0 0 9px color-mix(in srgb, var(--accent) 52%, transparent);
+}

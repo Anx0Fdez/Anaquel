@@ -17,7 +17,7 @@ import {
   Settings,
   Sun,
 } from "lucide-react";
-import type { Book, LibraryKind, Theme } from "../../types/book";
+import type { Book, LibraryKind, Theme, ViewMode } from "../../types/book";
 import type { NavFilter } from "../../state/filters";
 import { filterKey, matchesFilter } from "../../state/filters";
 import { useDismiss } from "../../lib/useDismiss";
@@ -42,6 +42,7 @@ interface LibraryStats {
 interface SidebarProps {
   vaultName: string;
   activeFilter: NavFilter;
+  viewMode: ViewMode;
   onFilterChange: (filter: NavFilter) => void;
   books: Book[];
   readingYears: YearEntry[];
@@ -78,6 +79,7 @@ const LIBRARY_KINDS: { kind: LibraryKind; label: string; icon: typeof BookOpen }
 export function Sidebar({
   vaultName,
   activeFilter,
+  viewMode,
   onFilterChange,
   books,
   readingYears,
@@ -94,7 +96,7 @@ export function Sidebar({
   googleBooksApiKey,
   onGoogleBooksApiKeyChange,
 }: SidebarProps) {
-  const activeKey = filterKey(activeFilter);
+  const activeKey = viewMode === "stats" ? null : filterKey(activeFilter);
   const [showAllYears, setShowAllYears] = useState(false);
   const YEARS_LIMIT = 5;
   const visibleYears = showAllYears ? readingYears : readingYears.slice(0, YEARS_LIMIT);
